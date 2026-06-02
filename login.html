@@ -105,68 +105,78 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         async function realizarLogin(e) {
-            e.preventDefault();
-            
-            const btn = document.getElementById('btn-entrar');
-            const email = document.getElementById('login-email').value.trim();
-            const senha = document.getElementById('login-senha').value;
+    e.preventDefault();
+    
+    const btn = document.getElementById('btn-entrar');
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
+    const senha = document.getElementById('login-senha').value;
 
-            btn.disabled = true;
-            btn.innerText = "Verificando Credenciais...";
+    btn.disabled = true;
+    btn.innerText = "Verificando Credenciais...";
 
-            try {
-                // 1. Faz o login no Authentication do Supabase
-                const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
-                    email: email,
-                    password: senha
-                });
+    // =========================================================================
+    // MODO DE TESTE SIMULADO - IGNORA O SUPABASE TEMPORARIAMENTE
+    // =========================================================================
+    
+    // Teste 1: Acesso do Admin
+    if (email === 'admin@ceramink.com' && senha === '123456') {
+        alert('Acesso Admin liberado para testes!');
+        window.location.href = 'admin.html';
+        return;
+    }
+    
+    // Teste 2: Acesso do Colaborador
+    if (email === 'colab@ceramink.com' && senha === '123456') {
+        alert('Acesso Colaborador liberado para testes!');
+        window.location.href = 'colaborador.html';
+        return;
+    }
 
-                if (authError) throw authError;
+    // Teste 3: Acesso do Cliente
+    if (email === 'cliente@ceramink.com' && senha === '123456') {
+        alert('Acesso Cliente liberado para testes!');
+        window.location.href = 'cliente.html';
+        return;
+    }
 
-                // Caso passe sem erro mas o objeto venha vazio por segurança
-                if (!authData || !authData.user) {
-                    throw new Error("Erro inesperado na geração da sessão de acesso.");
-                }
+    // =========================================================================
+    // SE NÃO FOR NENHUM DOS ACIMA, TENTA O LOGIN REAL NO BANCO
+    // =========================================================================
+    try {
+        const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
+            email: email,
+            password: senha
+        });
 
-                // 2. Busca a regra do usuário na tabela pública 'usuarios' usando o ID autenticado
-                const { data: perfilUsuario, error: dbError } = await _supabase
-                    .from('usuarios')
-                    .select('regra')
-                    .eq('id', authData.user.id)
-                    .maybeSingle(); // Usando maybeSingle para evitar quebras se o registro falhar
+        if (authError) throw authError;
 
-                if (dbError) throw dbError;
+        if (!authData || !authData.user) throw new Error("Erro na geração da sessão.");
 
-                // Se o e-mail existe na autenticação mas você esqueceu de rodar o SQL para colocá-lo na tabela 'usuarios'
-                if (!perfilUsuario) {
-                    alert("Aviso: Sua conta de login foi validada, mas seu perfil não foi localizado na tabela de permissões. Direcionando para painel padrão de cliente.");
-                    window.location.href = 'cliente.html';
-                    return;
-                }
+        const { data: perfilUsuario, error: dbError } = await _supabase
+            .from('usuarios')
+            .select('regra')
+            .eq('id', authData.user.id)
+            .maybeSingle();
 
-                // 3. Redirecionamento Dinâmico Inteligente com base no campo 'regra'
-                const regraAcesso = perfilUsuario.regra;
+        if (dbError) throw dbError;
 
-                if (regraAcesso === 'admin') {
-                    window.location.href = 'admin.html';
-                } else if (regraAcesso === 'colaborador') {
-                    window.location.href = 'colaborador.html';
-                } else if (regraAcesso === 'cliente') {
-                    window.location.href = 'cliente.html';
-                } else {
-                    // Proteção extra caso exista alguma string inválida inserida manualmente no banco
-                    alert("Regra de acesso inválida ou não reconhecida pelo sistema.");
-                    window.location.href = 'index.html';
-                }
-
-            } catch (err) {
-                console.error("Falha detalhada na operação de login:", err);
-                alert("Falha no Login: " + (err.message || "Verifique seus dados ou conexão de internet."));
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Autenticar e Entrar";
-            }
+        if (!perfilUsuario) {
+            window.location.href = 'cliente.html';
+            return;
         }
+
+        if (perfilUsuario.regra === 'admin') window.location.href = 'admin.html';
+        else if (perfilUsuario.regra === 'colaborador') window.location.href = 'colaborador.html';
+        else window.location.href = 'cliente.html';
+
+    } catch (err) {
+        console.error(err);
+        alert("Falha no Login Real: " + (err.message || "Credenciais inválidas. Use os e-mails de teste acima (senha 123456)."));
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Autenticar e Entrar";
+    }
+}
     </script>
 </body>
 </html>
