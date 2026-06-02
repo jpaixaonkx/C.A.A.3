@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ceramink Auto Aesthetics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .font-automotive { font-family: 'Orbitron', sans-serif; }
+        .font-sans-modern { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body {
+            background: linear-gradient(-45deg, #060913, #1e0b36, #092c4e, #0c0214);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .neon-text { text-shadow: 0 0 10px rgba(0, 212, 255, 0.8), 0 0 20px rgba(168, 85, 247, 0.6); }
+        .logo-glow { filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.45)); }
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="font-sans-modern text-white min-h-screen flex flex-col justify-between p-6 relative">
+    <div></div>
+    <main class="flex flex-col items-center justify-center text-center max-w-2xl mx-auto z-10">
+        <div class="w-44 h-44 mb-6 flex items-center justify-center rounded-full logo-glow overflow-hidden">
+            <img src="src/logo.jpeg" alt="Ceramink Logo" class="w-full h-full object-cover">
+        </div>
+        <h1 class="font-automotive text-3xl md:text-5xl font-black uppercase mb-2 neon-text">Ceramink</h1>
+        <p class="font-automotive text-xs tracking-[0.3em] text-cyan-400 font-bold uppercase mb-12">Auto Aesthetics</p>
+        <div class="flex flex-col sm:flex-row gap-4 w-full px-6 justify-center">
+            <a href="login.html" class="glass-btn py-4 px-10 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 min-w-[180px]">
+                <i class="fa-solid fa-right-to-bracket text-cyan-400"></i> Entrar
+            </a>
+            <a href="cadastro.html" class="glass-btn py-4 px-10 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 min-w-[180px]">
+                <i class="fa-solid fa-user-plus text-purple-400"></i> Cadastrar-se
+            </a>
+            <a href="https://www.instagram.com/c.autoaesthetics" target="_blank" rel="noopener noreferrer" 
+                    class="text-white/40 hover:text-pink-500 hover:scale-110 transition-all duration-300 text-lg md:text-xl" 
+                    title="Siga-nos no Instagram">
+                <i class="fa-brands fa-instagram"></i>
+            </a>
+        </div>
+    </main>
+    <footer class="flex justify-between items-center w-full pt-6 border-t border-white/5 z-10">
+        <div class="w-11 h-11 flex items-center justify-center rounded-xl border border-white/10 bg-white/5"><i class="fa-brands fa-instagram text-lg"></i></div>
+        <div class="text-xs text-white/40 font-automotive">© 2026 CAA SYSTEM</div>
+    </footer>
+</body>
+</html>

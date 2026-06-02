@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ceramink - Cadastro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .font-automotive { font-family: 'Orbitron', sans-serif; }
+        .font-sans-modern { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body {
+            background: linear-gradient(-45deg, #060913, #1e0b36, #092c4e, #0c0214);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .neon-text { text-shadow: 0 0 10px rgba(0, 212, 255, 0.8), 0 0 20px rgba(168, 85, 247, 0.6); }
+        .cloud-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+        .input-field { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .input-field:focus { border-color: #a855f7; outline: none; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
+        .btn-glow { background: linear-gradient(90deg, #00d4ff, #a855f7); }
+    </style>
+</head>
+<body class="font-sans-modern text-white min-h-screen flex flex-col justify-between p-6">
+    <header class="w-full max-w-md mx-auto">
+        <a href="index.html" class="text-white/60 hover:text-purple-400 text-sm flex items-center gap-2"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
+    </header>
+    <main class="flex flex-col items-center justify-center text-center w-full max-w-md mx-auto my-auto">
+        <h2 class="font-automotive text-3xl font-black uppercase mb-1 neon-text">Ceramink</h2>
+        <p class="font-automotive text-xxs tracking-[0.2em] text-purple-400 font-bold uppercase mb-6">Auto Aesthetics</p>
+        <div class="cloud-card w-full rounded-2xl p-6 text-left">
+            <h3 class="text-xl font-bold mb-4">Criar Conta</h3>
+            <form onsubmit="handleCadastro(event)" class="space-y-3">
+                <input type="text" placeholder="Nome Completo" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
+                <input type="email" placeholder="E-mail" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
+                <input type="tel" id="telefone" oninput="mascaraFone(this)" placeholder="Número (WhatsApp)" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
+                <input type="password" placeholder="Crie uma Senha" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
+                <button type="submit" class="btn-glow w-full py-3.5 rounded-xl font-bold text-sm uppercase mt-4 text-white">Concluir Cadastro</button>
+            </form>
+            <a href="login.html" class="w-full block text-center text-xs text-white/40 mt-4 hover:underline">Já tem uma conta? Faça login</a>
+        </div>
+    </main>
+    <div></div>
+    <script>
+        function mascaraFone(i) {
+            let v = i.value.replace(/\D/g, "");
+            if (v.length > 11) v = v.slice(0, 11);
+            if (v.length > 6) i.value = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
+            else if (v.length > 2) i.value = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+            else if (v.length > 0) i.value = `(${v.slice(0)}`;
+        }
+        function handleCadastro(e) {
+            e.preventDefault();
+            alert('Cadastro simulado com sucesso! Vamos para a página de login.');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

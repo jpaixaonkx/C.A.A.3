@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ceramink - Painel do Colaborador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .font-automotive { font-family: 'Orbitron', sans-serif; }
+        .font-sans-modern { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background: linear-gradient(-45deg, #060913, #15092b, #041d33, #0c0214);
+            background-size: 400% 400%;
+            animation: gradientMove 20s ease infinite;
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Estilo Nuvem Glassmorphism */
+        .cloud-container {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        .colab-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .colab-input:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+            outline: none;
+        }
+
+        /* Botão Flutuante de Lançamento */
+        .float-btn {
+            background: linear-gradient(135deg, #a855f7, #00d4ff);
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.3), inset 0 1px 1px rgba(255,255,255,0.3);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .float-btn:hover {
+            transform: scale(1.1) rotate(-9deg);
+            box-shadow: 0 12px 28px rgba(168, 85, 247, 0.5);
+        }
+
+        /* Modal Blur */
+        .modal-blur {
+            background: rgba(4, 2, 10, 0.6);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="font-sans-modern text-white min-h-screen flex flex-col justify-between p-4 md:p-6 lg:p-8 relative overflow-x-hidden">
+
+    <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.005)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.005)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none z-0"></div>
+
+    <header class="w-full max-w-6xl mx-auto flex justify-between items-center pb-6 border-b border-white/5 z-10">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full border border-purple-500/30 overflow-hidden bg-black/40 flex items-center justify-center">
+                <i class="fa-solid fa-user-circle text-purple-400 text-xl"></i>
+            </div>
+            <div>
+                <span class="text-xs text-white/40 block">Bem-vindo, Colaborador</span>
+                <h1 id="nome-colaborador" class="text-sm md:text-base font-bold text-white">Carregando...</h1>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-[10px] font-automotive bg-purple-500/10 border border-purple-500/20 px-3 py-1.5 rounded-xl text-purple-400 tracking-wider">SUA COMISSÃO: 30%</span>
+            <button onclick="window.location.href='index.html'" class="text-white/40 hover:text-red-400 text-xs transition-colors" title="Desconectar">
+                <i class="fa-solid fa-power-off text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-6xl mx-auto flex-1 my-6 space-y-6 z-10">
+        
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div>
+                <h2 class="text-xl font-bold">Seu Desempenho</h2>
+                <p class="text-xs text-white/50">Acompanhe seus ganhos atualizados em tempo real.</p>
+            </div>
+            <div class="text-xs text-white/40">Status do Banco: <span id="status-banco" class="text-yellow-400 font-bold">● Conectando...</span></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="cloud-container rounded-2xl p-6 flex items-center justify-between border-l-4 border-l-purple-500">
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Minha Comissão Disponível</p>
+                    <h2 id="card-comissao" class="text-2xl font-automotive font-black text-purple-400 mt-1">R$ 0,00</h2>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-xl"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+            </div>
+
+            <div class="cloud-container rounded-2xl p-6 flex items-center justify-between border-l-4 border-l-cyan-400">
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Total em Serviços Prestados</p>
+                    <h2 id="card-total-produzido" class="text-2xl font-automotive font-black text-cyan-400 mt-1">R$ 0,00</h2>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 text-xl"><i class="fa-solid fa-chart-line-up"></i></div>
+            </div>
+
+            <div class="cloud-container rounded-2xl p-6 flex items-center justify-between sm:col-span-2 lg:col-span-1">
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Meus Atendimentos Efetuados</p>
+                    <h2 id="card-servicos-qtd" class="text-2xl font-automotive font-black text-white mt-1">00 Serviços</h2>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-white/70 text-xl"><i class="fa-solid fa-car-burst"></i></div>
+            </div>
+        </div>
+
+        <div class="cloud-container rounded-2xl p-6">
+            <h3 class="text-xs uppercase tracking-widest text-white/50 font-bold mb-4">Histórico de Ganhos das Últimas Semanas</h3>
+            <div class="h-64 w-full">
+                <canvas id="colabChart"></canvas>
+            </div>
+        </div>
+
+        <div class="cloud-container rounded-2xl p-6 space-y-4">
+            <h3 class="text-sm font-bold border-b border-white/5 pb-2">Seus Lançamentos Recentes</h3>
+            <div id="historico-lançamentos" class="space-y-2 text-xs">
+                 <p id="sem-lancamentos" class="text-white/40 text-center py-4">Nenhum lançamento encontrado.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="w-full max-w-6xl mx-auto pt-4 border-t border-white/5 text-center text-[10px] text-white/30 font-automotive z-10">
+        © 2026 CAA SYSTEM • PAINEL DO OPERADOR
+    </footer>
+
+    <div class="fixed bottom-6 right-6 z-50">
+        <button onclick="openModalLançamento()" class="float-btn w-14 h-14 rounded-full flex items-center justify-center text-white text-xl" title="Lançar Trabalho Realizado">
+            <i class="fa-solid fa-circle-plus"></i>
+        </button>
+    </div>
+
+    <div id="lançamentoModal" class="modal-blur fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="cloud-container w-full max-w-md rounded-2xl p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                <h3 class="text-base font-bold font-automotive tracking-wide text-purple-400"><i class="fa-solid fa-square-plus"></i> Lançar Produção</h3>
+                <button onclick="closeModalLançamento()" class="text-white/40 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="form-lançamento" onsubmit="salvarLançamentoColaborador(event)" class="space-y-3 text-xs">
+                <div class="space-y-1">
+                    <label class="text-white/60">Categoria do Item</label>
+                    <select id="item-categoria" class="colab-input w-full p-3 rounded-xl text-white">
+                        <option value="Serviço">🚗 Serviço Prestado</option>
+                        <option value="Produto">📦 Produto Vendido</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-white/60">Nome do Serviço / Produto</label>
+                    <input type="text" id="item-nome" required class="colab-input w-full p-3 rounded-xl text-white" placeholder="Ex: Higienização Interna Ozonizada">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-white/60">Valor Bruto do Item (R$)</label>
+                    <input type="number" step="0.01" id="item-valor" required class="colab-input w-full p-3 rounded-xl text-white" placeholder="0.00">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-white/60">Identificação do Veículo / Cliente</label>
+                    <input type="text" id="item-cliente" class="colab-input w-full p-3 rounded-xl text-white" placeholder="Ex: Golf Placa ABC-1234">
+                </div>
+
+                <div class="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl mt-2">
+                    <p class="text-[11px] text-purple-300">💡 **Nota de Comissão:** Com a taxa do seu perfil de **30%**, este lançamento adicionará automaticamente **R$ <span id="preview-comissao">0.00</span>** diretamente ao seu saldo disponível assim que enviado.</p>
+                </div>
+
+                <button type="submit" id="btn-enviar" class="w-full bg-gradient-to-r from-purple-500 to-cyan-400 py-3.5 rounded-xl text-sm font-bold uppercase tracking-wider text-black mt-2 disabled:opacity-50">
+                    Enviar e Atualizar Meu Saldo
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAÇÕES SUPABASE - ALTERE COM SUAS CREDENCIAIS REAIS
+        const SUPABASE_URL = "https://fxetjbrwsjyjpsvlbrdf.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU";
+        
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Nome fixado para o escopo do colaborador logado nesta tela
+        const COLABORADOR_ATUAL = "Rodrigo Silva";
+        const taxaComissao = 0.30; 
+
+        // Estados Globais
+        let totalProduzido = 0;
+        let totalComissao = 0;
+        let totalServicos = 0;
+        let colabChart;
+
+        // Inicializador de Recursos
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('nome-colaborador').innerText = COLABORADOR_ATUAL;
+            inicializarGrafico();
+            carregarDadosIniciais();
+            inscreverRealtime();
+        });
+
+        // Monitor de digitação para calcular prévia da comissão
+        document.getElementById('item-valor').addEventListener('input', function(e) {
+            const valor = parseFloat(e.target.value) || 0;
+            const preview = (valor * taxaComissao).toFixed(2);
+            document.getElementById('preview-comissao').innerText = preview.replace('.', ',');
+        });
+
+        // Funções de abertura e fechamento do modal flutuante
+        function openModalLançamento() {
+            document.getElementById('lançamentoModal').classList.remove('hidden');
+        }
+        function closeModalLançamento() {
+            document.getElementById('lançamentoModal').classList.add('hidden');
+            document.getElementById('form-lançamento').reset();
+            document.getElementById('preview-comissao').innerText = "0.00";
+        }
+
+        // BUSCAR DADOS INICIAIS DO BANCO DE DADOS
+        async function carregarDadosIniciais() {
+            try {
+                // Busca todos os lançamentos do colaborador logado
+                const { data, error } = await _supabase
+                    .from('producao')
+                    .select('*')
+                    .eq('colaborador', COLABORADOR_ATUAL)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                document.getElementById('status-banco').className = "text-green-400 font-bold";
+                document.getElementById('status-banco').innerText = "● Supabase Conectado";
+
+                // Reset de contadores globais antes da computação estruturada
+                totalProduzido = 0;
+                totalComissao = 0;
+                totalServicos = 0;
+                
+                const historicoContainer = document.getElementById('historico-lançamentos');
+                historicoContainer.innerHTML = '';
+
+                if(data && data.length > 0) {
+                    document.getElementById('sem-lancamentos')?.remove();
+                    
+                    data.forEach(item => {
+                        totalProduzido += parseFloat(item.valor_bruto || 0);
+                        totalComissao += parseFloat(item.valor_comissao || 0);
+                        totalServicos++;
+
+                        renderizarItemLista(item, false);
+                    });
+                } else {
+                    historicoContainer.innerHTML = `<p id="sem-lancamentos" class="text-white/40 text-center py-4">Nenhum lançamento encontrado.</p>`;
+                }
+
+                atualizarCardsTela();
+                
+                // Atualiza a barra da semana atual do gráfico com a comissão calculada
+                colabChart.data.datasets[0].data[3] = totalComissao;
+                colabChart.update();
+
+            } catch (err) {
+                console.error("Erro ao carregar dados do Supabase:", err);
+                document.getElementById('status-banco').className = "text-red-400 font-bold";
+                document.getElementById('status-banco').innerText = "● Erro de Conectividade";
+            }
+        }
+
+        // SALVAR LANÇAMENTO REAL NO SUPABASE
+        async function salvarLançamentoColaborador(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-enviar');
+            btn.disabled = true;
+            btn.innerText = "Enviando...";
+            
+            const categoria = document.getElementById('item-categoria').value;
+            const nome = document.getElementById('item-nome').value;
+            const valorBruto = parseFloat(document.getElementById('item-valor').value);
+            const clienteInfo = document.getElementById('item-cliente').value || 'Não informado';
+            const comissaoGanha = valorBruto * taxaComissao;
+
+            try {
+                const { error } = await _supabase
+                    .from('producao')
+                    .insert([{
+                        colaborador: COLABORADOR_ATUAL,
+                        categoria: categoria,
+                        nome_item: nome,
+                        valor_bruto: valorBruto,
+                        valor_comissao: comissaoGanha,
+                        identificacao: clienteInfo,
+                        status: "Concluído" // Valor padrão inicial
+                    }]);
+
+                if (error) throw error;
+                
+                closeModalLançamento();
+            } catch (err) {
+                alert("Falha ao salvar dados no Supabase: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Enviar e Atualizar Meu Saldo";
+            }
+        }
+
+        // FUNÇÃO ADICIONAL: ATUALIZAR STATUS NO BANCO VIA SELECT DO CARD
+        async function atualizarStatusServico(id, novoStatus) {
+            try {
+                const { error } = await _supabase
+                    .from('producao')
+                    .update({ status: novoStatus })
+                    .eq('id', id);
+
+                if (error) throw error;
+                
+                // Feedback visual temporário de sucesso na borda do item modificado
+                const elemento = document.getElementById(`item-${id}`);
+                if (elemento) {
+                    elemento.classList.add('border-purple-500/50');
+                    setTimeout(() => elemento.classList.remove('border-purple-500/50'), 1000);
+                }
+            } catch (err) {
+                alert("Erro ao atualizar status no banco: " + err.message);
+                carregarDadosIniciais(); // Restaura o estado da tela em caso de falhas de comunicação
+            }
+        }
+
+        // ESCUTA EM TEMPO REAL COMPLETA (INSERT E UPDATE INTEGRADOS COM O ADMIN)
+        function inscribirRealtime() {
+            _supabase
+                .channel('producao_colaborador')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'producao' }, payload => {
+                    
+                    // Cenário 1: Novo lançamento criado (Disparado por você ou pelo Admin apontado para você)
+                    if (payload.eventType === 'INSERT' && payload.new.colaborador === COLABORADOR_ATUAL) {
+                        document.getElementById('sem-lancamentos')?.remove();
+                        
+                        totalProduzido += parseFloat(payload.new.valor_bruto || 0);
+                        totalComissao += parseFloat(payload.new.valor_comissao || 0);
+                        totalServicos += 1;
+
+                        atualizarCardsTela();
+                        renderizarItemLista(payload.new, true);
+
+                        colabChart.data.datasets[0].data[3] += parseFloat(payload.new.valor_comissao || 0);
+                        colabChart.update();
+                    }
+                    
+                    // Cenário 2: Atualização de registro (Status alterado aqui ou diretamente no painel admin)
+                    if (payload.eventType === 'UPDATE' && payload.new.colaborador === COLABORADOR_ATUAL) {
+                        const itemSelect = document.querySelector(`#item-${payload.new.id} select`);
+                        if (itemSelect) {
+                            itemSelect.value = payload.new.status || 'Concluído';
+                            
+                            // Remove classes antigas de cores de texto para reinserir com precisão
+                            itemSelect.className = itemSelect.className.replace(/text-(emerald|yellow|red)-400/g, '').trim();
+                            
+                            const statusModificado = payload.new.status;
+                            if (statusModificado === 'Concluído') itemSelect.classList.add('text-emerald-400');
+                            else if (statusModificado === 'Em Andamento') itemSelect.classList.add('text-yellow-400');
+                            else itemSelect.classList.add('text-red-400');
+                        } else {
+                            // Caso a linha não esteja renderizada por qualquer motivo, atualiza o histórico completo
+                            carregarDadosIniciais();
+                        }
+                    }
+                })
+                .subscribe();
+        }
+
+        // Funções Auxiliares de Interface
+        function atualizarCardsTela() {
+            document.getElementById('card-total-produzido').innerText = `R$ ${totalProduzido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('card-comissao').innerText = `R$ ${totalComissao.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('card-servicos-qtd').innerText = `${totalServicos < 10 ? '0' + totalServicos : totalServicos} Serviços`;
+        }
+
+        function renderizarItemLista(item, animar) {
+            const historicoContainer = document.getElementById('historico-lançamentos');
+            const classeAnimacao = animar ? 'animate-pulse border-purple-500/40 bg-black/50' : 'border-white/5 bg-black/30';
+            
+            const statusAtual = item.status || 'Concluído';
+            
+            // Retorna dinamicamente a cor da fonte correspondente ao status carregado
+            const obterCorStatus = (status) => {
+                if (status === 'Concluído') return 'text-emerald-400';
+                if (status === 'Em Andamento') return 'text-yellow-400';
+                return 'text-red-400';
+            };
+            
+            const novoItemHTML = `
+                <div id="item-${item.id}" class="p-4 border rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-all ${classeAnimacao}">
+                    <div>
+                        <span class="text-cyan-400 font-bold">${item.categoria === 'Serviço' ? '🚗 Serviço' : '📦 Produto'}</span>
+                        <h4 class="text-sm font-bold mt-0.5">${item.nome_item}</h4>
+                        <p class="text-white/40">Valor Total: R$ ${parseFloat(item.valor_bruto).toFixed(2).replace('.', ',')} | <span class="text-purple-400 font-semibold">Sua Comissão (30%): R$ ${parseFloat(item.valor_comissao).toFixed(2).replace('.', ',')}</span></p>
+                        <p class="text-[10px] text-white/20 mt-0.5">Ref: ${item.identificacao}</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 self-end sm:self-center bg-black/40 p-1.5 rounded-xl border border-white/5">
+                        <span class="text-[10px] uppercase tracking-wider text-white/40 pl-1.5">Status:</span>
+                        <select onchange="atualizarStatusServico('${item.id}', this.value)" class="bg-transparent text-xs font-bold focus:outline-none cursor-pointer ${obterCorStatus(statusAtual)}">
+                            <option value="Pendente" class="bg-[#15092b] text-red-400" ${statusAtual === 'Pendente' ? 'selected' : ''}>● Pendente</option>
+                            <option value="Em Andamento" class="bg-[#15092b] text-yellow-400" ${statusAtual === 'Em Andamento' ? 'selected' : ''}>● Em Andamento</option>
+                            <option value="Concluído" class="bg-[#15092b] text-emerald-400" ${statusAtual === 'Concluído' ? 'selected' : ''}>● Concluído</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            historicoContainer.insertAdjacentHTML('afterbegin', novoItemHTML);
+        }
+
+        function inicializarGrafico() {
+            const ctx = document.getElementById('colabChart').getContext('2d');
+            colabChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana Atual'],
+                    datasets: [{
+                        label: 'Minha Comissão (R$)',
+                        data: [280, 420, 310, 0], 
+                        backgroundColor: 'rgba(168, 85, 247, 0.4)',
+                        borderColor: '#a855f7',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.4)' } },
+                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.4)' } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
