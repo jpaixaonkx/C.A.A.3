@@ -6,6 +6,7 @@
     <title>Ceramink - Cadastro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         .font-automotive { font-family: 'Orbitron', sans-serif; }
@@ -27,7 +28,7 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
-        .input-field { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .input-field { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; }
         .input-field:focus { border-color: #a855f7; outline: none; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
         .btn-glow { background: linear-gradient(90deg, #00d4ff, #a855f7); }
     </style>
@@ -42,24 +43,26 @@
         <div class="cloud-card w-full rounded-2xl p-6 text-left">
             <h3 class="text-xl font-bold mb-4">Criar Conta</h3>
             <form onsubmit="handleCadastro(event)" class="space-y-3">
-                <input type="text" placeholder="Nome Completo" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
-                <input type="email" placeholder="E-mail" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
-                <input type="tel" id="telefone" oninput="mascaraFone(this)" placeholder="Número (WhatsApp)" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
-                <input type="password" placeholder="Crie uma Senha" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
-                <button type="submit" class="btn-glow w-full py-3.5 rounded-xl font-bold text-sm uppercase mt-4 text-white">Concluir Cadastro</button>
+                <input type="text" id="cadastro-nome" placeholder="Nome Completo" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
+                <input type="email" id="cadastro-email" placeholder="E-mail" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
+                <input type="tel" id="cadastro-telefone" oninput="mascaraFone(this)" placeholder="Número (WhatsApp)" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
+                <input type="password" id="cadastro-senha" placeholder="Crie uma Senha" required class="input-field w-full py-3 px-4 rounded-xl text-sm text-white">
+                <button type="submit" id="btn-cadastrar" class="btn-glow w-full py-3.5 rounded-xl font-bold text-sm uppercase mt-4 text-white active:scale-[0.99] transition-transform">Concluir Cadastro</button>
             </form>
             <a href="login.html" class="w-full block text-center text-xs text-white/40 mt-4 hover:underline">Já tem uma conta? Faça login</a>
         </div>
     </main>
     <div></div>
+
     <script>
-          const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         // =========================================================================
-        // CONFIGURAÇÕES SUPABASE - PRONTAS PARA O PROXIMO PASSO (.ENV)
+        // CONFIGURAÇÕES SUPABASE
         // =========================================================================
-        // No próximo módulo, estas chaves lerão de forma nativa as suas variáveis globais.
         const SUPABASE_URL = window._env_?.SUPABASE_URL || 'https://fxetjbrwsjyjpsvlbrdf.supabase.co';
         const SUPABASE_ANON_KEY = window._env_?.SUPABASE_ANON_KEY || 'sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU';
+        
+        // Cliente inicializado após a definição das chaves
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         function mascaraFone(i) {
             let v = i.value.replace(/\D/g, "");
@@ -68,10 +71,46 @@
             else if (v.length > 2) i.value = `(${v.slice(0, 2)}) ${v.slice(2)}`;
             else if (v.length > 0) i.value = `(${v.slice(0)}`;
         }
-        function handleCadastro(e) {
+
+        async function handleCadastro(e) {
             e.preventDefault();
-            alert('Cadastro simulado com sucesso! Vamos para a página de login.');
-            window.location.href = 'login.html';
+            
+            const btn = document.getElementById('btn-cadastrar');
+            const nome = document.getElementById('cadastro-nome').value.trim();
+            const email = document.getElementById('cadastro-email').value.trim();
+            const telefone = document.getElementById('cadastro-telefone').value;
+            const senha = document.getElementById('cadastro-senha').value;
+
+            btn.disabled = true;
+            btn.innerText = "Processando Registro...";
+
+            try {
+                // Cadastra o usuário no sistema de autenticação nativo do Supabase
+                const { data, error } = await _supabase.auth.signUp({
+                    email: email,
+                    password: senha,
+                    options: {
+                        // Envia esses dados extras para a automação (Trigger) do SQL salvar na tabela pública 'usuarios'
+                        data: {
+                            nome: nome,
+                            telefone: telefone,
+                            regra: 'cliente' // Por padrão, novas contas via site entram como cliente
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                alert('Cadastro efetuado com sucesso! Redirecionando para a tela de login.');
+                window.location.href = 'login.html';
+
+            } catch (err) {
+                console.error("Erro detalhado no cadastro:", err);
+                alert("Falha ao registrar: " + (err.message || "Tente novamente mais tarde."));
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Concluir Cadastro";
+            }
         }
     </script>
 </body>
