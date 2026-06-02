@@ -58,20 +58,22 @@
     </main>
     <div></div>
     <script>
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // =========================================================================
+        // CONFIGURAÇÕES SUPABASE - PRONTAS PARA O PROXIMO PASSO (.ENV)
+        // =========================================================================
+        // No próximo módulo, estas chaves lerão de forma nativa as suas variáveis globais.
+        const SUPABASE_URL = window._env_?.SUPABASE_URL || 'https://fxetjbrwsjyjpsvlbrdf.supabase.co';
+        const SUPABASE_ANON_KEY = window._env_?.SUPABASE_ANON_KEY || 'sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU';
         function handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('email').value.toLowerCase();
-    
-    if (email.includes('admin')) {
-        // Se o e-mail contiver "admin", vai para o Painel do Dono
-        window.location.href = 'admin.html';
-    } else if (email.includes('colab') || email.includes('rodrigo')) {
-        // Se contiver "colab" ou o nome do funcionário, vai para o Painel de Produção
-        window.location.href = 'colaborador.html';
-    } else {
-        alert('Login de cliente efetuado! (Ambiente de agendamentos em desenvolvimento)');
-    }
-}
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            if(email.toLowerCase().includes('admin')) {
+                window.location.href = 'admin.html';
+            } else {
+                alert('Login de cliente efetuado! (Próxima etapa do app)');
+            }
+        }
     </script>
 </body>
 </html>

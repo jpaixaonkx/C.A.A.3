@@ -53,6 +53,14 @@
     </main>
     <div></div>
     <script>
+          const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // =========================================================================
+        // CONFIGURAÇÕES SUPABASE - PRONTAS PARA O PROXIMO PASSO (.ENV)
+        // =========================================================================
+        // No próximo módulo, estas chaves lerão de forma nativa as suas variáveis globais.
+        const SUPABASE_URL = window._env_?.SUPABASE_URL || 'https://fxetjbrwsjyjpsvlbrdf.supabase.co';
+        const SUPABASE_ANON_KEY = window._env_?.SUPABASE_ANON_KEY || 'sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU';
+        
         function mascaraFone(i) {
             let v = i.value.replace(/\D/g, "");
             if (v.length > 11) v = v.slice(0, 11);
