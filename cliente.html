@@ -64,7 +64,8 @@
             </div>
             <div>
                 <span class="text-xs text-white/40 block">Olá, Proprietário</span>
-                <h1 class="text-sm md:text-base font-bold text-white">Carlos Eduardo Medeiros</h1>
+                <!-- ID modificado para receber o nome dinâmico do banco -->
+                <h1 id="cliente-nome-topo" class="text-sm md:text-base font-bold text-white">Carregando...</h1>
             </div>
         </div>
         
@@ -73,7 +74,7 @@
             <button id="btn-notificacao" onclick="pedirPermissaoNotificacao()" class="text-xs bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 px-3 py-2 rounded-xl flex items-center gap-2 text-purple-300 transition-all">
                 <i class="fa-solid fa-bell"></i> Ativar Avisos
             </button>
-            <button onclick="window.location.href='index.html'" class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:text-red-400 transition-colors" title="Sair">
+            <button onclick="desconectar()" class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:text-red-400 transition-colors" title="Sair">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
             </button>
         </div>
@@ -90,7 +91,8 @@
                 <div class="flex justify-between items-start border-b border-white/5 pb-3">
                     <div>
                         <span class="text-[10px] uppercase font-automotive text-cyan-400 tracking-wider">Acompanhamento Realtime</span>
-                        <h2 class="text-base font-bold mt-0.5">Civic Type R — <span class="font-mono text-white/60 text-xs">Placa: CAA-2026</span></h2>
+                        <!-- ID adicionado para puxar a descrição real do carro atrelado se houver -->
+                        <h2 class="text-base font-bold mt-0.5" id="veiculo-titulo">Buscando veículo...</h2>
                     </div>
                     <!-- Status Badge Dinâmico -->
                     <span id="status-badge" class="px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded-lg text-[10px] font-bold uppercase tracking-wider">
@@ -135,7 +137,7 @@
                 </div>
             </div>
 
-            <!-- CARD 2: COMPRA DE PRODUTOS/MANUTENÇÃO DE ESTÉTICA (NOVO) -->
+            <!-- CARD 2: COMPRA DE PRODUTOS/MANUTENÇÃO DE ESTÉTICA -->
             <div class="cloud-container rounded-2xl p-6 space-y-4">
                 <div class="flex justify-between items-center border-b border-white/5 pb-2">
                     <h3 class="text-sm font-bold font-automotive tracking-wide text-purple-400"><i class="fa-solid fa-spray-can-sparkles"></i> Vitrine de Cuidados Premium</h3>
@@ -232,13 +234,15 @@
 
     <!-- LÓGICA DE ATUALIZAÇÃO REALTIME E NOTIFICAÇÕES -->
     <script>
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         // =========================================================================
-        // CONFIGURAÇÕES SUPABASE - PRONTAS PARA O PROXIMO PASSO (.ENV)
+        // CONFIGURAÇÕES SUPABASE CORRIGIDAS (VARIÁVEIS ANTES DA INSTÂNCIA)
         // =========================================================================
-        // No próximo módulo, estas chaves lerão de forma nativa as suas variáveis globais.
         const SUPABASE_URL = window._env_?.SUPABASE_URL || 'https://fxetjbrwsjyjpsvlbrdf.supabase.co';
         const SUPABASE_ANON_KEY = window._env_?.SUPABASE_ANON_KEY || 'sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU';
+        
+        // Agora sim, instanciado com as variáveis carregadas na memória
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         // Configurações das Fases do Processo
         const fasesConfig = {
             1: { badge: "Recebido", desc: "Veículo deu entrada no pátio e passou pela vistoria inicial.", pct: "5%", color: "#00d4ff" },
@@ -247,30 +251,72 @@
             4: { badge: "Pronto para Retirada", desc: "Finalizado! Seu veículo passou pelo controle de qualidade e já pode ser retirado.", pct: "100%", color: "#10b981" }
         };
 
+        // Função essencial: Carrega a sessão e captura o nome inserido no cadastro
+        async function verificarSessaoEBuscarPerfil() {
+            try {
+                const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
+                
+                if (sessionError || !session) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const userAuth = session.user;
+
+                // Busca as colunas nome e veiculo_modelo (caso use no painel de admin)
+                const { data: perfil, error: dbError } = await _supabase
+                    .from('usuarios')
+                    .select('nome')
+                    .eq('id', userAuth.id)
+                    .maybeSingle();
+
+                if (dbError) throw dbError;
+
+                if (perfil && perfil.nome) {
+                    document.getElementById('cliente-nome-topo').innerText = perfil.nome;
+                } else {
+                    // Fallback caso a tabela pública demore a sincronizar
+                    document.getElementById('cliente-nome-topo').innerText = userAuth.user_metadata?.nome || "Cliente";
+                }
+
+                // Ajusta o título do veículo dinamicamente com base no que está ativo localmente
+                const veiculoSalvo = localStorage.getItem('ceramink_modelo_veiculo') || "Civic Type R — CAA-2026";
+                document.getElementById('veiculo-titulo').innerText = veiculoSalvo;
+
+            } catch (err) {
+                console.error("Erro na verificação de sessão:", err);
+                document.getElementById('cliente-nome-topo').innerText = "Erro ao carregar";
+            }
+        }
+
         // Função para atualizar a timeline visualmente
         function atualizarTimelineVisual(fase) {
             fase = parseInt(fase) || 1;
             const config = fasesConfig[fase];
 
-            // Atualiza textos superiores
-            document.getElementById('status-badge').innerText = config.badge;
-            document.getElementById('status-descricao').innerText = config.desc;
-            
-            // Modifica cores do badge de status
-            const badge = document.getElementById('status-badge');
-            badge.style.color = config.color;
-            badge.style.backgroundColor = `${config.color}15`;
-
-            // Atualiza comprimento da barra de linha
-            document.getElementById('progress-bar-line').style.width = config.pct;
+            // Verifica se os elementos existem antes de alterar para evitar erros no console
+            if(document.getElementById('status-badge')) {
+                document.getElementById('status-badge').innerText = config.badge;
+                const badge = document.getElementById('status-badge');
+                badge.style.color = config.color;
+                badge.style.backgroundColor = `${config.color}15`;
+            }
+            if(document.getElementById('status-descricao')) {
+                document.getElementById('status-descricao').innerText = config.desc;
+            }
+            if(document.getElementById('progress-bar-line')) {
+                document.getElementById('progress-bar-line').style.width = config.pct;
+            }
 
             // Altera o estado visual de cada bolinha (Step)
             for (let i = 1; i <= 4; i++) {
                 const stepElement = document.getElementById(`step-${i}`);
+                if (!stepElement) continue;
+                
                 const dot = stepElement.querySelector('.step-dot');
+                if (!dot) continue;
                 
                 if (i < fase) {
-                    // Passado
                     stepElement.classList.remove('opacity-40');
                     stepElement.classList.add('opacity-100');
                     stepElement.style.color = '#00d4ff';
@@ -279,7 +325,6 @@
                     dot.style.color = '#000000';
                     dot.innerHTML = '<i class="fa-solid fa-check text-[10px]"></i>';
                 } else if (i === fase) {
-                    // Fase Atual
                     stepElement.classList.remove('opacity-40');
                     stepElement.classList.add('opacity-100');
                     stepElement.style.color = config.color;
@@ -289,7 +334,6 @@
                     dot.innerHTML = i;
                     dot.classList.add('animate-pulse', 'shadow-[0_0_15px_rgba(0,212,255,0.4)]');
                 } else {
-                    // Futuro
                     stepElement.classList.add('opacity-40');
                     stepElement.classList.remove('opacity-100');
                     stepElement.style.color = '#ffffff';
@@ -325,15 +369,15 @@
         function enviarNotificacaoFase(fase) {
             if (Notification.permission === "granted") {
                 const config = fasesConfig[fase];
+                const modeloCarro = localStorage.getItem('ceramink_modelo_veiculo') || "Seu veículo";
                 new Notification(`Ceramink: Status Atualizado!`, {
-                    body: `Seu Civic Type R mudou para: ${config.badge}`,
+                    body: `${modeloCarro} mudou para: ${config.badge}`,
                     icon: "logo.jpeg"
                 });
             }
         }
 
-        // --- MONITOR REALTIME VIA STORAGE EVENT (Simula conexões Supabase / Websockets) ---
-        // Toda vez que mudarmos o status do carro em outro painel, essa janela detecta e se atualiza sozinha
+        // --- MONITOR REALTIME VIA STORAGE EVENT ---
         window.addEventListener('storage', function(e) {
             if (e.key === 'ceramink_status_veiculo') {
                 const novaFase = parseInt(e.newValue);
@@ -342,8 +386,10 @@
             }
         });
 
-        // Execução inicial ao carregar a página
+        // Execução inicial ao carregar a página completamente
         document.addEventListener("DOMContentLoaded", () => {
+            verificarSessaoEBuscarPerfil();
+            
             const faseSalva = localStorage.getItem('ceramink_status_veiculo') || 1;
             atualizarTimelineVisual(faseSalva);
 
@@ -376,6 +422,10 @@
             const veiculo = document.getElementById('agenda-veiculo').value;
             const data = document.getElementById('agenda-data').value.split('-').reverse().join('/');
             
+            // Armazena o modelo enviado para simular no rastreador superior
+            localStorage.setItem('ceramink_modelo_veiculo', veiculo);
+            document.getElementById('veiculo-titulo').innerText = veiculo;
+
             const container = document.getElementById('historico-cliente');
             const itemHTML = `
                 <div class="p-3 bg-cyan-500/5 border border-cyan-400/20 rounded-xl space-y-1">
@@ -390,6 +440,11 @@
             container.insertAdjacentHTML('afterbegin', itemHTML);
             alert("Agendamento solicitado com sucesso!");
             e.target.reset();
+        }
+
+        async function desconectar() {
+            await _supabase.auth.signOut();
+            window.location.href = 'index.html';
         }
 
         // Bloqueia datas passadas no calendário
