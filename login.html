@@ -67,10 +67,10 @@
 
             <form id="form-login" onsubmit="realizarLogin(event)" class="space-y-4 text-xs">
                 <div class="space-y-1">
-                    <label class="text-white/60 font-medium">E-mail corporativo ou pessoal</label>
+                    <label class="text-white/60 font-medium">E-mail cadastrado</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-white/30"><i class="fa-solid fa-envelope"></i></span>
-                        <input type="email" id="login-email" required class="colab-input w-full p-3 pl-10 rounded-xl text-white" placeholder="exemplo@ceramink.com">
+                        <input type="email" id="login-email" required class="colab-input w-full p-3 pl-10 rounded-xl text-white" placeholder="seu-email@provedor.com">
                     </div>
                 </div>
 
@@ -98,85 +98,64 @@
     </footer>
 
     <script>
-        // ⚠️ ATENÇÃO: COLOQUE SUAS CREDENCIAIS REAIS DO SUPABASE AQUI
-        const SUPABASE_URL = "https://fxetjbrwsjyjpsvlbrdf.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU";
+        // CONFIGURAÇÕES SUPABASE
+        const SUPABASE_URL = window._env_?.SUPABASE_URL || 'https://fxetjbrwsjyjpsvlbrdf.supabase.co';
+        const SUPABASE_ANON_KEY = window._env_?.SUPABASE_ANON_KEY || 'sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU';
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         async function realizarLogin(e) {
-    e.preventDefault();
-    
-    const btn = document.getElementById('btn-entrar');
-    const email = document.getElementById('login-email').value.trim().toLowerCase();
-    const senha = document.getElementById('login-senha').value;
+            e.preventDefault();
+            
+            const btn = document.getElementById('btn-entrar');
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const senha = document.getElementById('login-senha').value;
 
-    btn.disabled = true;
-    btn.innerText = "Verificando Credenciais...";
+            btn.disabled = true;
+            btn.innerText = "Verificando Credenciais...";
 
-    // =========================================================================
-    // MODO DE TESTE SIMULADO - IGNORA O SUPABASE TEMPORARIAMENTE
-    // =========================================================================
-    
-    // Teste 1: Acesso do Admin
-    if (email === 'admin@ceramink.com' && senha === '123456') {
-        alert('Acesso Admin liberado para testes!');
-        window.location.href = 'admin.html';
-        return;
-    }
-    
-    // Teste 2: Acesso do Colaborador
-    if (email === 'colab@ceramink.com' && senha === '123456') {
-        alert('Acesso Colaborador liberado para testes!');
-        window.location.href = 'colaborador.html';
-        return;
-    }
+            try {
+                // 1. Faz autenticação real diretamente no Supabase Auth
+                const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
+                    email: email,
+                    password: senha
+                });
 
-    // Teste 3: Acesso do Cliente
-    if (email === 'cliente@ceramink.com' && senha === '123456') {
-        alert('Acesso Cliente liberado para testes!');
-        window.location.href = 'cliente.html';
-        return;
-    }
+                if (authError) throw authError;
+                if (!authData || !authData.user) throw new Error("Erro na geração da sessão.");
 
-    // =========================================================================
-    // SE NÃO FOR NENHUM DOS ACIMA, TENTA O LOGIN REAL NO BANCO
-    // =========================================================================
-    try {
-        const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
-            email: email,
-            password: senha
-        });
+                // 2. Coleta as regras do usuário logado diretamente da tabela pública
+                const { data: perfilUsuario, error: dbError } = await _supabase
+                    .from('usuarios')
+                    .select('regra')
+                    .eq('id', authData.user.id)
+                    .maybeSingle();
 
-        if (authError) throw authError;
+                if (dbError) throw dbError;
 
-        if (!authData || !authData.user) throw new Error("Erro na geração da sessão.");
+                // Se não houver configuração de regra estipulada, trata como cliente por padrão
+                if (!perfilUsuario) {
+                    window.location.href = 'cliente.html';
+                    return;
+                }
 
-        const { data: perfilUsuario, error: dbError } = await _supabase
-            .from('usuarios')
-            .select('regra')
-            .eq('id', authData.user.id)
-            .maybeSingle();
+                // 3. Redirecionamento Dinâmico focado nas permissões da DB
+                if (perfilUsuario.regra === 'admin') {
+                    window.location.href = 'admin.html';
+                } else if (perfilUsuario.regra === 'colaborador') {
+                    window.location.href = 'colaborador.html';
+                } else {
+                    window.location.href = 'cliente.html';
+                }
 
-        if (dbError) throw dbError;
-
-        if (!perfilUsuario) {
-            window.location.href = 'cliente.html';
-            return;
+            } catch (err) {
+                console.error(err);
+                alert("Falha no Login: " + (err.message || "E-mail ou senha incorretos. Verifique suas credenciais de acesso."));
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Autenticar e Entrar";
+            }
         }
-
-        if (perfilUsuario.regra === 'admin') window.location.href = 'admin.html';
-        else if (perfilUsuario.regra === 'colaborador') window.location.href = 'colaborador.html';
-        else window.location.href = 'cliente.html';
-
-    } catch (err) {
-        console.error(err);
-        alert("Falha no Login Real: " + (err.message || "Credenciais inválidas. Use os e-mails de teste acima (senha 123456)."));
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Autenticar e Entrar";
-    }
-}
     </script>
 </body>
 </html>
