@@ -122,7 +122,7 @@
                     <i class="fa-solid fa-calendar-days text-base w-5 text-center"></i>
                     <span class="menu-text">Agenda Realtime</span>
                 </button>
-                <button onclick="switchTab('colaborador', this)" class="nav-item w-full flex items-center gap-4 px-3 py-3 rounded-xl text-white/60 hover:bg-white/5 hover:text-white font-medium text-sm transition-all">
+                <button onclick="switchTab('colaboradores', this)" class="nav-item w-full flex items-center gap-4 px-3 py-3 rounded-xl text-white/60 hover:bg-white/5 hover:text-white font-medium text-sm transition-all">
                     <i class="fa-solid fa-id-card text-base w-5 text-center"></i>
                     <span class="menu-text">Colaboradores</span>
                 </button>
@@ -335,7 +335,7 @@
             </div>
         </section>
 
-        <section id="tab-colaborador" class="tab-content hidden space-y-6">
+        <section id="tab-colaboradores" class="tab-content hidden space-y-6">
             <div>
                 <h1 class="text-2xl font-bold">Gestão de Funcionários</h1>
                 <p class="text-xs text-white/50">Cadastre credenciais e permissões de acesso.</p>
@@ -463,7 +463,7 @@
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 1. Alternador de Abas do Menu Interno
+        // 1. Alternador de Abas do Menu Interno (Sincronizado e Corrigido)
         function switchTab(tabId, clickedButton) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(btn => {
@@ -534,7 +534,6 @@
             
             try {
                 if (modo === 'catalogo') {
-                    // Direciona o insert para a tabela específica de serviços e produtos da empresa
                     const { data, error } = await _supabase
                         .from('servicos_produtos')
                         .insert([{ tipo, nome, valor, criado_em: new Date() }]);
@@ -542,7 +541,6 @@
                     if (error) throw error;
                     alert(`Sucesso! ${tipo} "${nome}" adicionado com sucesso ao estoque/catálogo.`);
                 } else {
-                    // Mantém o comportamento de registrar movimentação financeira de venda realizada
                     const cliente = document.getElementById('venda-cliente').value;
                     const { data, error } = await _supabase
                         .from('vendas')
