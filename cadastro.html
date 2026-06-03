@@ -61,7 +61,6 @@
         const SUPABASE_URL = window._env_?.SUPABASE_URL || 'https://fxetjbrwsjyjpsvlbrdf.supabase.co';
         const SUPABASE_ANON_KEY = window._env_?.SUPABASE_ANON_KEY || 'sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU';
         
-        // Cliente inicializado Corretamente APÓS a declaração das variáveis/chaves de acesso
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         function mascaraFone(i) {
@@ -78,10 +77,9 @@
             const btn = document.getElementById('btn-cadastrar');
             const nome = document.getElementById('cadastro-nome').value.trim();
             const email = document.getElementById('cadastro-email').value.trim();
-            const telefone = document.getElementById('cadastro-telefone').value;
+            const telefone = document.getElementById('cadastro-telefone').value.trim();
             const senha = document.getElementById('cadastro-senha').value;
 
-            // O Supabase exige senhas com o mínimo de 6 caracteres por padrão de segurança
             if (senha.length < 6) {
                 alert("Atenção: A sua senha precisa conter no mínimo 6 caracteres.");
                 return;
@@ -91,30 +89,35 @@
             btn.innerText = "Processando Registro...";
 
             try {
-                // Efetua a criação da credencial criptografada no módulo de Autenticação do Supabase
+                // 1. Criar credencial de autenticação no Supabase Auth
                 const { data, error } = await _supabase.auth.signUp({
-                    email: emailInserido,
-                    password: senhaInserida,
-                        options: {
+                    email: email,
+                    password: senha,
+                    options: {
                         data: {
-                        nome: nomeInserido,          // O que você usa no seu código
-                        display_name: nomeInserido,  // Corrige o ' - ' no painel do Supabase Auth
-                        full_name: nomeInserido      // Garante compatibilidade máxima
-                }
-                }
-            });
-                
-                if (data?.user) {
-                    await _supabase.from('usuarios').insert([
-                    { 
-                        id: data.user.id, 
-                        nome: nomeInserido, 
-                        email: emailInserido, 
-                        regra: 'cliente' 
+                            nome: nome,
+                            display_name: nome, // Corrige o Display Name ' - ' no painel do Supabase
+                            full_name: nome
+                        }
                     }
-               ]);
-                }
+                });
+                
                 if (error) throw error;
+                
+                // 2. Salvar os dados complementares na tabela pública 'usuarios'
+                if (data?.user) {
+                    const { error: dbError } = await _supabase.from('usuarios').insert([
+                        { 
+                            id: data.user.id, 
+                            nome: nome, 
+                            email: email, 
+                            telefone: telefone, // Adicionado campo de telefone se houver na tabela
+                            regra: 'cliente' 
+                        }
+                    ]);
+
+                    if (dbError) throw dbError;
+                }
 
                 alert('Cadastro efetuado com sucesso! Redirecionando para a tela de login.');
                 window.location.href = 'login.html';
