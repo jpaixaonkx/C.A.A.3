@@ -36,27 +36,32 @@
             box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
         }
 
-        /* Menu Lateral Retrátil Corrigido */
+        /* Menu Lateral Retrátil Otimizado para Mobile e Desktop */
         #sidebar {
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(10, 5, 22, 0.75);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(10, 5, 22, 0.95);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
-            width: 256px; /* w-64 */
         }
         
-        /* Classe injetada pelo JS para minimizar */
-        .sidebar-minimized {
-            width: 80px !important;
-        }
-        .sidebar-minimized .menu-text, 
-        .sidebar-minimized .logo-text {
-            display: none !important;
-        }
-        .sidebar-minimized .nav-item {
-            justify-content: center;
-            padding-left: 0;
-            padding-right: 0;
+        @media (min-width: 1024px) {
+            #sidebar {
+                background: rgba(10, 5, 22, 0.75);
+                transform: translateX(0) !important;
+            }
+            .sidebar-minimized {
+                width: 80px !important;
+            }
+            .sidebar-minimized .menu-text, 
+            .sidebar-minimized .logo-text {
+                display: none !important;
+            }
+            .sidebar-minimized .nav-item {
+                justify-content: center;
+                padding-left: 0;
+                padding-right: 0;
+            }
         }
 
         .admin-input {
@@ -96,12 +101,15 @@
         .modal-blur {
             background: rgba(4, 2, 10, 0.6);
             backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
     </style>
 </head>
 <body class="font-sans-modern text-white min-h-screen flex overflow-hidden">
 
-    <aside id="sidebar" class="h-screen flex flex-col justify-between p-4 z-30 shrink-0">
+    <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-20 hidden lg:hidden backdrop-blur-sm"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 h-screen flex flex-col justify-between p-4 z-30 shrink-0 transform -translate-x-full lg:translate-x-0 lg:static">
         <div>
             <div class="flex items-center justify-between mb-8 px-2 py-1">
                 <div class="logo-text">
@@ -109,7 +117,8 @@
                     <span class="font-automotive text-[9px] text-cyan-400 tracking-[0.2em] block uppercase">Aesthetics</span>
                 </div>
                 <button onclick="toggleSidebar()" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors text-white/70 hover:text-cyan-400">
-                    <i id="minimizeIcon" class="fa-solid fa-bars-staggered"></i>
+                    <i id="minimizeIcon" class="fa-solid fa-bars-staggered lg:block hidden"></i>
+                    <i class="fa-solid fa-xmark lg:hidden block"></i>
                 </button>
             </div>
 
@@ -155,48 +164,57 @@
         </div>
     </aside>
 
-    <main class="flex-1 h-screen overflow-y-auto p-6 lg:p-8 z-10 relative flex flex-col">
+    <main class="flex-1 h-screen overflow-y-auto p-4 sm:p-6 lg:p-8 z-10 relative flex flex-col">
+        
+        <div class="flex lg:hidden items-center justify-between mb-4 pb-4 border-b border-white/5">
+            <button onclick="toggleSidebar()" class="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-cyan-400">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+            <div class="text-right">
+                <span class="font-automotive text-xs font-black tracking-wider block">CERAMINK</span>
+            </div>
+        </div>
         
         <section id="tab-dashboard" class="tab-content space-y-6">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Painel Executivo</h1>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Painel Executivo</h1>
                     <p class="text-xs text-white/50">Métricas consolidadas e faturamento em tempo real.</p>
                 </div>
-                <div class="bg-black/40 p-1 rounded-xl border border-white/5 text-xs flex gap-1">
-                    <button onclick="changeChartPeriod(7)" class="px-3 py-1.5 rounded-lg text-white/60 hover:text-white transition-all">7 Dias</button>
-                    <button onclick="changeChartPeriod(30)" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-medium transition-all">30 Dias (Padrão)</button>
+                <div class="bg-black/40 p-1 rounded-xl border border-white/5 text-xs flex gap-1 w-full md:w-auto justify-between">
+                    <button onclick="changeChartPeriod(7)" class="px-3 py-1.5 rounded-lg text-white/60 hover:text-white transition-all flex-1 md:flex-none text-center">7 Dias</button>
+                    <button onclick="changeChartPeriod(30)" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-medium transition-all flex-1 md:flex-none text-center">30 Dias</button>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="cloud-container rounded-2xl p-6 flex items-center justify-between">
+                <div class="cloud-container rounded-2xl p-4 sm:p-6 flex items-center justify-between">
                     <div>
                         <p class="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Faturamento Diário</p>
-                        <h2 id="realtime-faturamento-dia" class="text-2xl font-automotive font-black text-emerald-400 mt-1">R$ 4.250,00</h2>
+                        <h2 id="realtime-faturamento-dia" class="text-xl sm:text-2xl font-automotive font-black text-emerald-400 mt-1">R$ 4.250,00</h2>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-xl"><i class="fa-solid fa-cash-register"></i></div>
                 </div>
 
-                <div class="cloud-container rounded-2xl p-6 flex items-center justify-between">
+                <div class="cloud-container rounded-2xl p-4 sm:p-6 flex items-center justify-between">
                     <div>
                         <p class="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Serviços Hoje</p>
-                        <h2 id="realtime-servicos-dia" class="text-2xl font-automotive font-black text-cyan-400 mt-1">14 Lançamentos</h2>
+                        <h2 id="realtime-servicos-dia" class="text-xl sm:text-2xl font-automotive font-black text-cyan-400 mt-1">14 Lançamentos</h2>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 text-xl"><i class="fa-solid fa-car-wash"></i></div>
                 </div>
 
-                <div class="cloud-container rounded-2xl p-6 sm:col-span-2 lg:col-span-1 flex items-center justify-between">
+                <div class="cloud-container rounded-2xl p-4 sm:p-6 sm:col-span-2 lg:col-span-1 flex items-center justify-between">
                     <div>
                         <p class="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Clientes Ativos</p>
-                        <h2 class="text-2xl font-automotive font-black text-purple-400 mt-1">342 Clientes</h2>
+                        <h2 class="text-xl sm:text-2xl font-automotive font-black text-purple-400 mt-1">342 Clientes</h2>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-xl"><i class="fa-solid fa-users"></i></div>
                 </div>
             </div>
 
-            <div class="cloud-container rounded-2xl p-6">
-                <div class="h-80 w-full">
+            <div class="cloud-container rounded-2xl p-4 sm:p-6">
+                <div class="h-64 sm:h-80 w-full">
                     <canvas id="dashboardChart"></canvas>
                 </div>
             </div>
@@ -205,56 +223,52 @@
         <section id="tab-agenda" class="tab-content hidden space-y-6">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Agenda Integrada & Serviços Ativos</h1>
-                    <p class="text-xs text-white/50">Gerencie o fluxo da oficina e acompanhe a planilha em tempo real.</p>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Agenda Integrada</h1>
+                    <p class="text-xs text-white/50">Fluxo da oficina em tempo real.</p>
                 </div>
-                <div class="text-xs bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 px-3 py-1.5 rounded-xl font-mono">
-                    <i class="fa-solid fa-circle shadow-pulse text-[9px] text-emerald-400 mr-1 animate-pulse"></i> Link Realtime Ativo
+                <div class="text-[10px] sm:text-xs bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 px-3 py-1.5 rounded-xl font-mono w-fit">
+                    <i class="fa-solid fa-circle text-[9px] text-emerald-400 mr-1 animate-pulse"></i> Link Realtime Ativo
                 </div>
             </div>
 
-            <div class="cloud-container rounded-2xl p-6 space-y-4">
-                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+            <div class="cloud-container rounded-2xl p-4 sm:p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center border-b border-white/5 pb-2 gap-1">
                     <h2 class="text-xs font-bold font-automotive tracking-wide text-cyan-400">
                         <i class="fa-solid fa-gears mr-1"></i> 1. Serviços Sendo Atendidos no Momento
                     </h2>
-                    <span class="text-[9px] uppercase tracking-widest text-white/40">Controle de Progresso App Cliente</span>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-black/40 border border-white/5 p-4 rounded-xl space-y-3">
-                        <div class="flex justify-between items-start">
+                        <div class="flex justify-between items-start gap-2">
                             <div>
-                                <h3 class="text-xs font-bold">Civic Type R — <span class="text-white/40 font-mono">CAA-2026</span></h3>
-                                <p class="text-[11px] text-white/50">Cliente: Carlos Eduardo Medeiros</p>
+                                <h3 class="text-xs font-bold">Civic Type R — <span class="text-white/40 font-mono text-[10px]">CAA-2026</span></h3>
+                                <p class="text-[11px] text-white/50 mt-0.5">Cliente: Carlos Eduardo</p>
                             </div>
-                            <span class="text-[10px] bg-purple-500/10 border border-purple-500/30 text-purple-300 px-2 py-0.5 rounded font-bold">Vitrificação 9H</span>
+                            <span class="text-[9px] bg-purple-500/10 border border-purple-500/30 text-purple-300 px-2 py-0.5 rounded font-bold whitespace-nowrap">Vitrificação 9H</span>
                         </div>
-                        
                         <div class="space-y-1">
-                            <label class="text-[10px] text-white/40 uppercase font-semibold block">Atualizar Fase Visual do Cliente:</label>
                             <select onchange="atualizarStatusClienteRealtime(this.value)" id="status-civic" class="admin-select w-full p-2.5 rounded-lg text-xs outline-none cursor-pointer">
-                                <option value="1">1. Recebido (Aguardando Pátio)</option>
-                                <option value="2">2. Preparação (Lavagem Detalhada/Mascaramento)</option>
-                                <option value="3">3. Aplicação & Cura (Estufa Climatizada)</option>
-                                <option value="4">4. Pronto para Retirada (Finalizado)</option>
+                                <option value="1">1. Recebido (Pátio)</option>
+                                <option value="2">2. Preparação (Lavagem)</option>
+                                <option value="3">3. Aplicação & Cura (Estufa)</option>
+                                <option value="4">4. Pronto para Retirada</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="bg-black/40 border border-white/5 p-4 rounded-xl space-y-3">
-                        <div class="flex justify-between items-start">
+                        <div class="flex justify-between items-start gap-2">
                             <div>
-                                <h3 class="text-xs font-bold">Porsche 911 Carrera — <span class="text-white/40 font-mono">CRK-9111</span></h3>
-                                <p class="text-[11px] text-white/50">Responsável Técnico: Rodrigo (Colaborador)</p>
+                                <h3 class="text-xs font-bold">Porsche 911 — <span class="text-white/40 font-mono text-[10px]">CRK-9111</span></h3>
+                                <p class="text-[11px] text-white/50 mt-0.5">Resp: Rodrigo (Colab)</p>
                             </div>
-                            <span class="text-[10px] bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 px-2 py-0.5 rounded font-bold">Polimento Comercial</span>
+                            <span class="text-[9px] bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 px-2 py-0.5 rounded font-bold whitespace-nowrap">Polimento</span>
                         </div>
                         <div class="space-y-1">
-                            <label class="text-[10px] text-white/40 uppercase font-semibold block">Atualizar Fase Visual do Cliente:</label>
                             <select class="admin-select w-full p-2.5 rounded-lg text-xs outline-none cursor-pointer">
-                                <option value="2">2. Preparação (Lavagem/Polimento)</option>
-                                <option value="3">3. Aplicação & Cura (Estufa)</option>
+                                <option value="2">2. Preparação (Lavagem)</option>
+                                <option value="3">3. Aplicação & Cura</option>
                                 <option value="4">4. Pronto para Retirada</option>
                             </select>
                         </div>
@@ -263,20 +277,19 @@
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div class="cloud-container rounded-2xl p-6 xl:col-span-2 space-y-4">
+                <div class="cloud-container rounded-2xl p-4 sm:p-6 xl:col-span-2 space-y-4">
                     <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                        <h3 class="text-xs font-bold font-automotive text-purple-400"><i class="fa-solid fa-table-list mr-1"></i> 2. Planilha Geral de Agendamentos</h3>
-                        <span class="text-[10px] text-white/40">Visualização de Cronogramas</span>
+                        <h3 class="text-xs font-bold font-automotive text-purple-400"><i class="fa-solid fa-table-list mr-1"></i> 2. Planilha Geral</h3>
                     </div>
 
                     <div class="overflow-x-auto w-full rounded-xl border border-white/5 bg-black/20">
-                        <table class="w-full text-left border-collapse text-xs">
+                        <table class="w-full text-left border-collapse text-xs min-w-[500px]">
                             <thead>
                                 <tr class="bg-white/5 text-white/60 uppercase font-mono border-b border-white/10 text-[10px] tracking-wider">
                                     <th class="p-3">Data/Hora</th>
                                     <th class="p-3">Cliente</th>
                                     <th class="p-3">Veículo</th>
-                                    <th class="p-3">Serviço Solicitado</th>
+                                    <th class="p-3">Serviço</th>
                                     <th class="p-3 text-center">Status</th>
                                 </tr>
                             </thead>
@@ -285,37 +298,30 @@
                                     <td class="p-3 font-mono font-bold text-cyan-400">02/06 - 09:00</td>
                                     <td class="p-3 font-medium">Carlos Eduardo</td>
                                     <td class="p-3 text-white/70">Civic Type R</td>
-                                    <td class="p-3"><span class="bg-purple-500/10 text-purple-300 border border-purple-500/20 px-2 py-0.5 rounded text-[11px]">Vitrificação Premium</span></td>
-                                    <td class="p-3 text-center"><span class="text-emerald-400 font-bold uppercase text-[10px]"><i class="fa-solid fa-circle-check"></i> Confirmado</span></td>
-                                </tr>
-                                <tr class="hover:bg-white/5 transition-colors">
-                                    <td class="p-3 font-mono text-white/40">05/06 - 14:00</td>
-                                    <td class="p-3">Marcos Roberto</td>
-                                    <td class="p-3 text-white/70">Audi RS3</td>
-                                    <td class="p-3"><span class="bg-white/5 px-2 py-0.5 rounded border border-white/10 text-[11px]">Lavagem Detalhada</span></td>
-                                    <td class="p-3 text-center"><span class="text-emerald-400 font-bold uppercase text-[10px]"><i class="fa-solid fa-circle-check"></i> Confirmado</span></td>
+                                    <td class="p-3"><span class="bg-purple-500/10 text-purple-300 border border-purple-500/20 px-2 py-0.5 rounded text-[10px]">Vitrificação</span></td>
+                                    <td class="p-3 text-center"><span class="text-emerald-400 font-bold uppercase text-[10px]">✓ OK</span></td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <div class="cloud-container rounded-2xl p-6 space-y-4 h-fit">
+                <div class="cloud-container rounded-2xl p-4 sm:p-6 space-y-4 h-fit">
                     <div class="border-b border-white/5 pb-2">
                         <h3 class="text-xs uppercase font-automotive tracking-wider text-cyan-400"><i class="fa-solid fa-calendar-plus mr-1"></i> Encaixar Horário</h3>
                     </div>
                     <form onsubmit="adicionarDiretoNaPlanilha(event)" class="space-y-3 text-xs">
                         <div>
                             <label class="text-white/50 block mb-1">Nome do Cliente</label>
-                            <input type="text" id="agenda-nome" required class="admin-input w-full p-3 rounded-xl text-white outline-none" placeholder="Ex: Fernando Souza">
+                            <input type="text" id="agenda-nome" required class="admin-input w-full p-3 rounded-xl text-white outline-none">
                         </div>
                         <div>
-                            <label class="text-white/50 block mb-1">Modelo/Placa do Veículo</label>
-                            <input type="text" id="agenda-carro" required class="admin-input w-full p-3 rounded-xl text-white outline-none" placeholder="Ex: BMW M3 Coupé">
+                            <label class="text-white/50 block mb-1">Modelo/Placa</label>
+                            <input type="text" id="agenda-carro" required class="admin-input w-full p-3 rounded-xl text-white outline-none">
                         </div>
                         <div>
-                            <label class="text-white/50 block mb-1">Serviço Alocado</label>
-                            <input type="text" id="agenda-serv" required class="admin-input w-full p-3 rounded-xl text-white outline-none" placeholder="Ex: Correção de Pintura">
+                            <label class="text-white/50 block mb-1">Serviço</label>
+                            <input type="text" id="agenda-serv" required class="admin-input w-full p-3 rounded-xl text-white outline-none">
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
@@ -327,7 +333,7 @@
                                 <input type="text" id="agenda-hora" required class="admin-input w-full p-3 rounded-xl text-white outline-none" placeholder="10:00">
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-gradient-to-r from-cyan-400 to-purple-600 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider text-black mt-2 transition-all hover:opacity-90">
+                        <button type="submit" class="w-full bg-gradient-to-r from-cyan-400 to-purple-600 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider text-black mt-2">
                             Inserir na Planilha
                         </button>
                     </form>
@@ -337,10 +343,10 @@
 
         <section id="tab-colaboradores" class="tab-content hidden space-y-6">
             <div>
-                <h1 class="text-2xl font-bold">Gestão de Funcionários</h1>
+                <h1 class="text-xl sm:text-2xl font-bold">Gestão de Funcionários</h1>
                 <p class="text-xs text-white/50">Cadastre credenciais e permissões de acesso.</p>
             </div>
-            <div class="cloud-container rounded-2xl p-6 max-w-2xl">
+            <div class="cloud-container rounded-2xl p-4 sm:p-6 w-full max-w-2xl">
                 <form id="form-colaborador" onsubmit="handleCadastrarColaborador(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <input type="text" id="colab-nome" placeholder="Nome Completo" required class="admin-input w-full p-3 rounded-xl text-white">
                     <input type="email" id="colab-email" placeholder="E-mail de Acesso" required class="admin-input w-full p-3 rounded-xl text-white">
@@ -349,62 +355,88 @@
                     <input type="text" id="colab-endereco" placeholder="Endereço Residencial" class="admin-input w-full p-3 rounded-xl text-white sm:col-span-2">
                     <input type="text" id="colab-remuneracao" placeholder="Salário Base ou Comissão (%)" required class="admin-input w-full p-3 rounded-xl text-white">
                     <input type="password" id="colab-senha" placeholder="Senha do Colaborador" required class="admin-input w-full p-3 rounded-xl text-white">
-                    <button type="submit" class="sm:col-span-2 w-full bg-gradient-to-r from-cyan-500 to-purple-600 py-3.5 rounded-xl font-bold text-sm uppercase transition-all hover:opacity-90">Registrar</button>
+                    <button type="submit" class="sm:col-span-2 w-full bg-gradient-to-r from-cyan-500 to-purple-600 py-3.5 rounded-xl font-bold text-sm uppercase">Registrar</button>
                 </form>
             </div>
         </section>
 
         <section id="tab-clientes" class="tab-content hidden space-y-6">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold">Banco de Clientes</h1>
+                    <h1 class="text-xl sm:text-2xl font-bold">Banco de Clientes</h1>
                     <p class="text-xs text-white/50">Gerencie as fichas cadastrais.</p>
                 </div>
-                <input type="text" onkeyup="searchClientes(this.value)" class="admin-input py-2.5 px-4 rounded-xl text-xs w-64" placeholder="🔍 Buscar por nome, telefone...">
+                <input type="text" onkeyup="searchClientes(this.value)" class="admin-input py-2.5 px-4 rounded-xl text-xs w-full sm:w-64" placeholder="🔍 Buscar cliente...">
             </div>
             <div class="cloud-container rounded-2xl overflow-hidden">
-                <table class="w-full text-left text-xs">
-                    <tr class="bg-white/[0.02] border-b border-white/5 text-white/40 uppercase font-semibold"><th class="p-4">Nome</th><th class="p-4">E-mail</th><th class="p-4">Telefone</th><th class="p-4">Ações</th></tr>
-                    <tbody id="clientes-table-body" class="divide-y divide-white/5">
-                        <tr><td class="p-4">Marcos Paulo Rossi</td><td class="p-4 text-white/60">marcos.rossi@gmail.com</td><td class="p-4 font-mono">(11) 98765-4321</td><td class="p-4"><button onclick="alert('Editar cliente')" class="text-cyan-400 font-bold hover:underline">Editar</button></td></tr>
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full text-left text-xs min-w-[500px]">
+                        <thead>
+                            <tr class="bg-white/[0.02] border-b border-white/5 text-white/40 uppercase font-semibold">
+                                <th class="p-4">Nome</th>
+                                <th class="p-4">E-mail</th>
+                                <th class="p-4">Telefone</th>
+                                <th class="p-4">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientes-table-body" class="divide-y divide-white/5">
+                            <tr>
+                                <td class="p-4">Marcos Paulo Rossi</td>
+                                <td class="p-4 text-white/60">marcos.rossi@gmail.com</td>
+                                <td class="p-4 font-mono">(11) 98765-4321</td>
+                                <td class="p-4"><button onclick="alert('Editar cliente')" class="text-cyan-400 font-bold hover:underline">Editar</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
         <section id="tab-financeiro" class="tab-content hidden space-y-6">
-            <h1 class="text-2xl font-bold">Fluxo de Caixa Avançado</h1>
-            <div class="grid grid-cols-3 gap-4 text-center">
-                <div class="cloud-container p-4 rounded-xl"><span class="text-[10px] text-white/40 block">DIA</span><span class="text-sm font-automotive font-bold">R$ 4.250</span></div>
-                <div class="cloud-container p-4 rounded-xl"><span class="text-[10px] text-cyan-400 block">SEMANA</span><span class="text-sm font-automotive font-bold text-cyan-400">R$ 24.890</span></div>
-                <div class="cloud-container p-4 rounded-xl"><span class="text-[10px] text-purple-400 block">MÊS</span><span class="text-sm font-automotive font-bold text-purple-400">R$ 98.400</span></div>
+            <h1 class="text-xl sm:text-2xl font-bold">Fluxo de Caixa Avançado</h1>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                <div class="cloud-container p-4 rounded-xl"><span class="text-[10px] text-white/40 block">DIA</span><span class="text-base font-automotive font-bold">R$ 4.250</span></div>
+                <div class="cloud-container p-4 rounded-xl"><span class="text-[10px] text-cyan-400 block">SEMANA</span><span class="text-base font-automotive font-bold text-cyan-400">R$ 24.890</span></div>
+                <div class="cloud-container p-4 rounded-xl"><span class="text-[10px] text-purple-400 block">MÊS</span><span class="text-base font-automotive font-bold text-purple-400">R$ 98.400</span></div>
             </div>
-            <div class="cloud-container rounded-2xl p-6">
+            <div class="cloud-container rounded-2xl p-4 sm:p-6">
                 <h3 class="text-sm font-bold mb-2">Exportar Relatórios</h3>
-                <div class="flex gap-2"><input type="email" id="email-relatorio" class="admin-input flex-1 p-3 text-xs rounded-xl" placeholder="E-mail de destino"><button onclick="alert('Despachado!')" class="bg-cyan-500 text-black px-6 rounded-xl text-xs font-bold">Exportar</button></div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="email" id="email-relatorio" class="admin-input flex-1 p-3 text-xs rounded-xl" placeholder="E-mail de destino">
+                    <button onclick="alert('Despachado!')" class="bg-cyan-500 text-black px-6 py-3 sm:py-0 rounded-xl text-xs font-bold">Exportar</button>
+                </div>
             </div>
         </section>
 
         <section id="tab-chat" class="tab-content hidden h-full flex flex-col flex-1 space-y-4">
-            <h1 class="text-2xl font-bold">Central de Atendimento</h1>
-            <div class="cloud-container rounded-2xl flex flex-1 overflow-hidden min-h-[350px] text-xs">
-                <div class="w-1/3 border-r border-white/5 bg-black/20 p-2"><div class="p-3 bg-white/5 rounded-xl border-l-2 border-l-cyan-400 font-bold">Claudio Ribeiro</div></div>
-                <div class="flex-1 flex flex-col justify-between p-4">
-                    <div class="space-y-2"><div class="p-3 bg-white/5 rounded-xl max-w-sm"><p class="text-cyan-400 font-bold text-[10px]">Claudio</p>Qual o tempo de cura do verniz?</div></div>
-                    <div class="flex gap-2"><input type="text" class="admin-input flex-1 px-4 rounded-xl" placeholder="Responder..."><button onclick="alert('Mensagem enviada')" class="p-3 bg-cyan-500 text-black rounded-xl"><i class="fa-solid fa-paper-plane"></i></button></div>
+            <h1 class="text-xl sm:text-2xl font-bold">Central de Atendimento</h1>
+            <div class="cloud-container rounded-2xl flex flex-col sm:flex-row flex-1 overflow-hidden min-h-[350px] text-xs">
+                <div class="w-full sm:w-1/3 border-b sm:border-b-0 sm:border-r border-white/5 bg-black/20 p-2">
+                    <div class="p-3 bg-white/5 rounded-xl border-l-2 border-l-cyan-400 font-bold">Claudio Ribeiro</div>
+                </div>
+                <div class="flex-1 flex flex-col justify-between p-4 min-h-[250px]">
+                    <div class="space-y-2">
+                        <div class="p-3 bg-white/5 rounded-xl max-w-sm">
+                            <p class="text-cyan-400 font-bold text-[10px]">Claudio</p>Qual o tempo de cura do verniz?
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" class="admin-input flex-1 px-4 rounded-xl text-xs" placeholder="Responder...">
+                        <button onclick="alert('Mensagem enviada')" class="p-3 bg-cyan-500 text-black rounded-xl"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
                 </div>
             </div>
         </section>
 
         <section id="tab-servicos" class="tab-content hidden space-y-6">
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold">Catálogo de Serviços & Produtos</h1>
-                    <p class="text-xs text-white/50">Gerencie a lista de itens ofertados e o estoque da empresa.</p>
+                    <h1 class="text-xl sm:text-2xl font-bold">Catálogo</h1>
+                    <p class="text-xs text-white/50">Serviços & Produtos e estoque.</p>
                 </div>
-                <button onclick="openVendaModal('catalogo')" class="bg-cyan-500 text-black px-4 py-2 text-xs font-bold rounded-xl hover:opacity-90 transition-all">+ Novo Item</button>
+                <button onclick="openVendaModal('catalogo')" class="bg-cyan-500 text-black px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap">+ Novo Item</button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="cloud-container rounded-2xl p-5 flex flex-col justify-between">
                     <div><h3 class="text-sm font-bold">Vitrificação de Pintura Premium (9H)</h3><p class="text-xs text-white/50 mt-1">Camada cerâmica de alta resistência.</p></div>
                     <div class="flex justify-between items-center mt-4 pt-2 border-t border-white/5"><span class="text-xs text-white/40">Valor</span><span class="text-sm font-automotive font-bold text-cyan-400">R$ 1.200,00</span></div>
@@ -413,17 +445,17 @@
         </section>
     </main>
 
-    <div class="fixed bottom-6 right-6 z-50">
-        <button onclick="openVendaModal('venda')" class="float-btn w-14 h-14 rounded-full flex items-center justify-center text-white text-xl" title="Lançar Nova Venda/Serviço">
+    <div class="fixed bottom-6 right-6 z-40">
+        <button onclick="openVendaModal('venda')" class="float-btn w-14 h-14 rounded-full flex items-center justify-center text-white text-xl shadow-lg">
             <i class="fa-solid fa-dollar-sign"></i>
         </button>
     </div>
 
-    <div id="vendaModal" class="modal-blur fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="cloud-container w-full max-w-md rounded-2xl p-6 space-y-4">
+    <div id="vendaModal" class="modal-blur fixed inset-0 z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="cloud-container w-full max-w-md rounded-2xl p-6 space-y-4 my-auto">
             <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                <h3 id="modal-titulo" class="text-base font-bold font-automotive tracking-wide"><i class="fa-solid fa-cart-plus text-cyan-400"></i> Registrar Lançamento</h3>
-                <button onclick="closeVendaModal()" class="text-white/40 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                <h3 id="modal-titulo" class="text-sm sm:text-base font-bold font-automotive tracking-wide">Registrar Lançamento</h3>
+                <button onclick="closeVendaModal()" class="text-white/40 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="form-venda-item" onsubmit="handleSalvarVenda(event)" class="space-y-3 text-xs">
                 <input type="hidden" id="venda-modo" value="venda">
@@ -436,8 +468,8 @@
                     </select>
                 </div>
                 <div class="space-y-1">
-                    <label id="label-nome" class="text-white/60">Nome do Item / Descrição</label>
-                    <input type="text" id="venda-nome" required class="admin-input w-full p-3 rounded-xl text-white" placeholder="Ex: Lavagem Detalhada ou Pretinho Premium">
+                    <label id="label-nome" class="text-white/60">Nome / Descrição</label>
+                    <input type="text" id="venda-nome" required class="admin-input w-full p-3 rounded-xl text-white" placeholder="Ex: Lavagem Detalhada">
                 </div>
                 <div class="space-y-1">
                     <label class="text-white/60">Valor (R$)</label>
@@ -447,7 +479,7 @@
                     <label class="text-white/60">Cliente Vinculado</label>
                     <input type="text" id="venda-cliente" class="admin-input w-full p-3 rounded-xl text-white" placeholder="Nome ou Consumidor Final">
                 </div>
-                <button type="submit" id="btn-submit-modal" class="w-full bg-gradient-to-r from-cyan-400 to-purple-500 py-3.5 rounded-xl text-sm font-bold uppercase tracking-wider text-black mt-2">
+                <button type="submit" id="btn-submit-modal" class="w-full bg-gradient-to-r from-cyan-400 to-purple-500 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider text-black mt-2">
                     Confirmar e Lançar no Supabase
                 </button>
             </form>
@@ -455,15 +487,12 @@
     </div>
 
     <script>
-        // =========================================================================
         // CONFIGURAÇÕES SUPABASE
-        // =========================================================================
         const SUPABASE_URL = window._env_?.SUPABASE_URL || 'https://fxetjbrwsjyjpsvlbrdf.supabase.co';
         const SUPABASE_ANON_KEY = window._env_?.SUPABASE_ANON_KEY || 'sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU';
-        
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 1. Alternador de Abas do Menu Interno (Sincronizado e Corrigido)
+        // Controladores de Abas
         function switchTab(tabId, clickedButton) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(btn => {
@@ -476,24 +505,41 @@
             
             clickedButton.classList.add('bg-white/10', 'text-cyan-400');
             clickedButton.classList.remove('text-white/60');
-        }
 
-        // 2. Função para Minimizar / Expandir Menu Lateral
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const icon = document.getElementById('minimizeIcon');
-            
-            if (!sidebar || !icon) return;
-            sidebar.classList.toggle('sidebar-minimized');
-            
-            if (sidebar.classList.contains('sidebar-minimized')) {
-                icon.className = "fa-solid fa-bars";
-            } else {
-                icon.className = "fa-solid fa-bars-staggered";
+            // Fecha o menu automaticamente no Mobile após selecionar a aba
+            if (window.innerWidth < 1024) {
+                toggleSidebar(false);
             }
         }
 
-        // 3. Funções do Modal Dinâmico (Vendas vs Catálogo/Estoque)
+        // Controle Menu Responsivo (Hambúrguer / Drawer)
+        function toggleSidebar(forceState = null) {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const icon = document.getElementById('minimizeIcon');
+            
+            if (!sidebar) return;
+
+            if (window.innerWidth < 1024) {
+                // Comportamento Mobile (Slide Drawer)
+                const isOpen = forceState !== null ? forceState : sidebar.classList.contains('-translate-x-full');
+                if (isOpen) {
+                    sidebar.classList.remove('-translate-x-full');
+                    backdrop.classList.remove('hidden');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    backdrop.classList.add('hidden');
+                }
+            } else {
+                // Comportamento Desktop (Minimizar Lateral)
+                sidebar.classList.toggle('sidebar-minimized');
+                if (icon) {
+                    icon.className = sidebar.classList.contains('sidebar-minimized') ? "fa-solid fa-bars" : "fa-solid fa-bars-staggered";
+                }
+            }
+        }
+
+        // Funções do Modal Dinâmico
         function openVendaModal(modo = 'venda') {
             const modal = document.getElementById('vendaModal');
             const titulo = document.getElementById('modal-titulo');
@@ -503,20 +549,18 @@
             const inputModo = document.getElementById('venda-modo');
 
             if (!modal) return;
-            
             inputModo.value = modo;
 
             if (modo === 'catalogo') {
-                titulo.innerHTML = `<i class="fa-solid fa-box-open text-purple-400"></i> Adicionar ao Catálogo / Estoque`;
+                titulo.innerHTML = `<i class="fa-solid fa-box-open text-purple-400"></i> Adicionar ao Catálogo`;
                 containerCliente.classList.add('hidden');
-                inputCliente.removeAttribute('required');
-                btnSubmit.innerText = "Salvar no Catálogo da Empresa";
+                if(inputCliente) inputCliente.removeAttribute('required');
+                btnSubmit.innerText = "Salvar no Catálogo";
             } else {
-                titulo.innerHTML = `<i class="fa-solid fa-cart-plus text-cyan-400"></i> Registrar Lançamento de Venda`;
+                titulo.innerHTML = `<i class="fa-solid fa-cart-plus text-cyan-400"></i> Registrar Venda`;
                 containerCliente.classList.remove('hidden');
-                btnSubmit.innerText = "Confirmar e Lançar Venda";
+                btnSubmit.innerText = "Confirmar Venda";
             }
-
             modal.classList.remove('hidden');
         }
 
@@ -534,31 +578,23 @@
             
             try {
                 if (modo === 'catalogo') {
-                    const { data, error } = await _supabase
-                        .from('servicos_produtos')
-                        .insert([{ tipo, nome, valor, criado_em: new Date() }]);
-
+                    const { error } = await _supabase.from('servicos_produtos').insert([{ tipo, nome, valor, criado_em: new Date() }]);
                     if (error) throw error;
-                    alert(`Sucesso! ${tipo} "${nome}" adicionado com sucesso ao estoque/catálogo.`);
+                    alert(`Sucesso! Adicionado ao catálogo.`);
                 } else {
                     const cliente = document.getElementById('venda-cliente').value;
-                    const { data, error } = await _supabase
-                        .from('vendas')
-                        .insert([{ tipo, nome, valor, cliente, criado_em: new Date() }]);
-
+                    const { error } = await _supabase.from('vendas').insert([{ tipo, nome, valor, cliente, criado_em: new Date() }]);
                     if (error) throw error;
-                    alert(`Sucesso! Venda de ${tipo} ("${nome}") registrada no Supabase em tempo real.`);
+                    alert(`Sucesso! Venda registrada.`);
                 }
-
                 closeVendaModal();
                 e.target.reset();
             } catch (err) {
-                console.error('Erro ao processar requisição:', err.message);
-                alert('Erro ao sincronizar com o Supabase: ' + err.message);
+                alert('Erro ao sincronizar: ' + err.message);
             }
         }
 
-        // 4. Mecanismo de Busca Global na Lista de Clientes
+        // Busca de Clientes
         function searchClientes(query) {
             const lower = query.toLowerCase();
             document.querySelectorAll('#clientes-table-body tr').forEach(row => {
@@ -566,12 +602,9 @@
             });
         }
 
-        // =========================================================================
-        // GESTÃO E CRIAÇÃO DE COLABORADORES
-        // =========================================================================
+        // Cadastro de Funcionários
         async function handleCadastrarColaborador(e) {
             e.preventDefault();
-            
             const nome = document.getElementById('colab-nome').value;
             const email = document.getElementById('colab-email').value;
             const documento = document.getElementById('colab-documento').value;
@@ -582,52 +615,28 @@
 
             try {
                 const { data: authData, error: authError } = await _supabase.auth.signUp({
-                    email: email,
-                    password: senha,
-                    options: {
-                        data: {
-                            full_name: nome,
-                            role: 'colaborador'
-                        }
-                    }
+                    email, password: senha, options: { data: { full_name: nome, role: 'colaborador' } }
                 });
-
                 if (authError) throw authError;
 
-                const { error: dbError } = await _supabase
-                    .from('colaboradores')
-                    .insert([{
-                        id: authData.user?.id,
-                        nome,
-                        email,
-                        documento,
-                        whatsapp,
-                        endereco,
-                        remuneracao,
-                        criado_em: new Date()
-                    }]);
-
+                const { error: dbError } = await _supabase.from('colaboradores').insert([{
+                    id: authData.user?.id, nome, email, documento, whatsapp, endereco, remuneracao, criado_em: new Date()
+                }]);
                 if (dbError) throw dbError;
 
-                alert('Colaborador cadastrado com sucesso e reconhecido pelo Supabase!');
+                alert('Colaborador cadastrado perfeitamente!');
                 e.target.reset();
             } catch (error) {
-                console.error('Erro no cadastro do Supabase:', error.message);
-                alert('Erro ao registrar colaborador: ' + error.message);
+                alert('Erro: ' + error.message);
             }
         }
 
-        // =========================================================================
-        // SISTEMA DE SINCRONIZAÇÃO EM TEMPO REAL OPERACIONAL
-        // =========================================================================
         function atualizarStatusClienteRealtime(fase) {
             localStorage.setItem('ceramink_status_veiculo', fase);
-            console.log(`[Realtime]: Veículo CAA-2026 updated to: ${fase}`);
         }
 
         function adicionarDiretoNaPlanilha(e) {
             e.preventDefault();
-
             const nome = document.getElementById('agenda-nome').value;
             const carro = document.getElementById('agenda-carro').value;
             const serv = document.getElementById('agenda-serv').value;
@@ -638,30 +647,26 @@
             if (!tabelaCorpo) return;
             
             const novaLinhaHTML = `
-                <tr class="hover:bg-white/5 transition-colors bg-cyan-500/5 transition-all duration-500">
+                <tr class="hover:bg-white/5 transition-colors">
                     <td class="p-3 font-mono font-bold text-cyan-400">${data} - ${hora}</td>
                     <td class="p-3 font-medium">${nome}</td>
                     <td class="p-3 text-white/70">${carro}</td>
-                    <td class="p-3"><span class="bg-white/5 px-2 py-0.5 rounded border border-white/10 text-[11px]">${serv}</span></td>
-                    <td class="p-3 text-center"><span class="text-amber-400 font-bold uppercase text-[10px]"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Pendente</span></td>
+                    <td class="p-3"><span class="bg-white/5 px-2 py-0.5 rounded text-[10px]">${serv}</span></td>
+                    <td class="p-3 text-center"><span class="text-amber-400 font-bold text-[10px]">Pendente</span></td>
                 </tr>
             `;
-
             tabelaCorpo.insertAdjacentHTML('afterbegin', novaLinhaHTML);
-            alert('Agendamento inserido diretamente na planilha e propagado no ecossistema!');
             e.target.reset();
         }
 
-        // 5. Inicialização e Controle do Gráfico (Chart.js)
-        const canvasElement = document.getElementById('dashboardChart');
+        // Inicialização do Gráfico Fluid/Responsivo
         let chartInstance = null;
-
+        const canvasElement = document.getElementById('dashboardChart');
         if (canvasElement) {
-            const ctx = canvasElement.getContext('2d');
-            chartInstance = new Chart(ctx, {
+            chartInstance = new Chart(canvasElement.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: Array.from({length: 30}, (_, i) => `Dia ${i+1}`),
+                    labels: Array.from({length: 30}, (_, i) => `${i+1}`),
                     datasets: [{
                         data: Array.from({length: 30}, () => Math.floor(Math.random() * 4000) + 1000),
                         borderColor: '#00d4ff',
@@ -673,11 +678,11 @@
                 },
                 options: { 
                     responsive: true, 
-                    maintainAspectRatio: false, 
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.4)' } },
-                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.4)' } }
+                        x: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 10 } } }
                     }
                 }
             });
@@ -685,15 +690,25 @@
 
         function changeChartPeriod(days) {
             if (!chartInstance) return;
-            chartInstance.data.labels = Array.from({length: days}, (_, i) => `Dia ${i+1}`);
+            chartInstance.data.labels = Array.from({length: days}, (_, i) => `${i+1}`);
             chartInstance.data.datasets[0].data = Array.from({length: days}, () => Math.floor(Math.random() * 5000) + 1500);
             chartInstance.update();
         }
 
+        window.addEventListener('resize', () => {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (window.innerWidth >= 1024) {
+                if (sidebar) sidebar.classList.remove('-translate-x-full');
+                if (backdrop) backdrop.classList.add('hidden');
+            } else {
+                if (sidebar) sidebar.classList.add('-translate-x-full');
+            }
+        });
+
         document.addEventListener("DOMContentLoaded", () => {
-            const faseAtual = localStorage.getItem('ceramink_status_veiculo') || "1";
             const selectElement = document.getElementById('status-civic');
-            if (selectElement) selectElement.value = faseAtual;
+            if (selectElement) selectElement.value = localStorage.getItem('ceramink_status_veiculo') || "1";
         });
     </script>
 </body>
