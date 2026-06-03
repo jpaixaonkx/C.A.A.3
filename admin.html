@@ -191,7 +191,7 @@
                         <p class="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Clientes Ativos</p>
                         <h2 class="text-2xl font-automotive font-black text-purple-400 mt-1">342 Clientes</h2>
                     </div>
-                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-xl"><i class="fa-solid fa-user-gear"></i></div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-xl"><i class="fa-solid fa-users"></i></div>
                 </div>
             </div>
 
@@ -341,15 +341,15 @@
                 <p class="text-xs text-white/50">Cadastre credenciais e permissões de acesso.</p>
             </div>
             <div class="cloud-container rounded-2xl p-6 max-w-2xl">
-                <form onsubmit="alert('Colaborador cadastrado!'); this.reset();" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                    <input type="text" placeholder="Nome Completo" required class="admin-input w-full p-3 rounded-xl text-white">
-                    <input type="email" placeholder="E-mail de Acesso" required class="admin-input w-full p-3 rounded-xl text-white">
-                    <input type="text" placeholder="CPF ou CNPJ" required class="admin-input w-full p-3 rounded-xl text-white">
-                    <input type="tel" placeholder="WhatsApp" required class="admin-input w-full p-3 rounded-xl text-white">
-                    <input type="text" placeholder="Endereço Residencial" class="admin-input w-full p-3 rounded-xl text-white sm:col-span-2">
-                    <input type="text" placeholder="Salário Base ou Comissão (%)" required class="admin-input w-full p-3 rounded-xl text-white">
-                    <input type="password" placeholder="Senha do Colaborador" required class="admin-input w-full p-3 rounded-xl text-white">
-                    <button type="submit" class="sm:col-span-2 w-full bg-gradient-to-r from-cyan-500 to-purple-600 py-3.5 rounded-xl font-bold text-sm uppercase">Registrar</button>
+                <form id="form-colaborador" onsubmit="handleCadastrarColaborador(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <input type="text" id="colab-nome" placeholder="Nome Completo" required class="admin-input w-full p-3 rounded-xl text-white">
+                    <input type="email" id="colab-email" placeholder="E-mail de Acesso" required class="admin-input w-full p-3 rounded-xl text-white">
+                    <input type="text" id="colab-documento" placeholder="CPF ou CNPJ" required class="admin-input w-full p-3 rounded-xl text-white">
+                    <input type="tel" id="colab-whatsapp" placeholder="WhatsApp" required class="admin-input w-full p-3 rounded-xl text-white">
+                    <input type="text" id="colab-endereco" placeholder="Endereço Residencial" class="admin-input w-full p-3 rounded-xl text-white sm:col-span-2">
+                    <input type="text" id="colab-remuneracao" placeholder="Salário Base ou Comissão (%)" required class="admin-input w-full p-3 rounded-xl text-white">
+                    <input type="password" id="colab-senha" placeholder="Senha do Colaborador" required class="admin-input w-full p-3 rounded-xl text-white">
+                    <button type="submit" class="sm:col-span-2 w-full bg-gradient-to-r from-cyan-500 to-purple-600 py-3.5 rounded-xl font-bold text-sm uppercase transition-all hover:opacity-90">Registrar</button>
                 </form>
             </div>
         </section>
@@ -398,8 +398,11 @@
 
         <section id="tab-servicos" class="tab-content hidden space-y-6">
             <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold">Catálogo de Serviços & Produtos</h1>
-                <button onclick="openVendaModal()" class="bg-cyan-500 text-black px-4 py-2 text-xs font-bold rounded-xl">+ Novo Item</button>
+                <div>
+                    <h1 class="text-2xl font-bold">Catálogo de Serviços & Produtos</h1>
+                    <p class="text-xs text-white/50">Gerencie a lista de itens ofertados e o estoque da empresa.</p>
+                </div>
+                <button onclick="openVendaModal('catalogo')" class="bg-cyan-500 text-black px-4 py-2 text-xs font-bold rounded-xl hover:opacity-90 transition-all">+ Novo Item</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="cloud-container rounded-2xl p-5 flex flex-col justify-between">
@@ -411,7 +414,7 @@
     </main>
 
     <div class="fixed bottom-6 right-6 z-50">
-        <button onclick="openVendaModal()" class="float-btn w-14 h-14 rounded-full flex items-center justify-center text-white text-xl" title="Lançar Nova Venda/Serviço">
+        <button onclick="openVendaModal('venda')" class="float-btn w-14 h-14 rounded-full flex items-center justify-center text-white text-xl" title="Lançar Nova Venda/Serviço">
             <i class="fa-solid fa-dollar-sign"></i>
         </button>
     </div>
@@ -419,30 +422,32 @@
     <div id="vendaModal" class="modal-blur fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="cloud-container w-full max-w-md rounded-2xl p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                <h3 class="text-base font-bold font-automotive tracking-wide"><i class="fa-solid fa-cart-plus text-cyan-400"></i> Registrar Lançamento</h3>
+                <h3 id="modal-titulo" class="text-base font-bold font-automotive tracking-wide"><i class="fa-solid fa-cart-plus text-cyan-400"></i> Registrar Lançamento</h3>
                 <button onclick="closeVendaModal()" class="text-white/40 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form onsubmit="handleSalvarVenda(event)" class="space-y-3 text-xs">
+            <form id="form-venda-item" onsubmit="handleSalvarVenda(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="venda-modo" value="venda">
+                
                 <div class="space-y-1">
-                    <label class="text-white/60">Tipo de Lançamento</label>
+                    <label class="text-white/60">Tipo de Item</label>
                     <select id="venda-tipo" class="admin-input w-full p-3 rounded-xl text-white">
-                        <option value="Serviço">🚗 Serviço Executado</option>
-                        <option value="Produto">📦 Produto Vendido</option>
+                        <option value="Serviço">🚗 Serviço</option>
+                        <option value="Produto">📦 Produto</option>
                     </select>
                 </div>
                 <div class="space-y-1">
-                    <label class="text-white/60">Nome do Item / Descrição</label>
+                    <label id="label-nome" class="text-white/60">Nome do Item / Descrição</label>
                     <input type="text" id="venda-nome" required class="admin-input w-full p-3 rounded-xl text-white" placeholder="Ex: Lavagem Detalhada ou Pretinho Premium">
                 </div>
                 <div class="space-y-1">
-                    <label class="text-white/60">Valor Cobrado (R$)</label>
+                    <label class="text-white/60">Valor (R$)</label>
                     <input type="number" step="0.01" id="venda-valor" required class="admin-input w-full p-3 rounded-xl text-white" placeholder="0.00">
                 </div>
-                <div class="space-y-1">
+                <div id="container-cliente" class="space-y-1">
                     <label class="text-white/60">Cliente Vinculado</label>
                     <input type="text" id="venda-cliente" class="admin-input w-full p-3 rounded-xl text-white" placeholder="Nome ou Consumidor Final">
                 </div>
-                <button type="submit" class="w-full bg-gradient-to-r from-cyan-400 to-purple-500 py-3.5 rounded-xl text-sm font-bold uppercase tracking-wider text-black mt-2">
+                <button type="submit" id="btn-submit-modal" class="w-full bg-gradient-to-r from-cyan-400 to-purple-500 py-3.5 rounded-xl text-sm font-bold uppercase tracking-wider text-black mt-2">
                     Confirmar e Lançar no Supabase
                 </button>
             </form>
@@ -450,18 +455,13 @@
     </div>
 
     <script>
-
-         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         // =========================================================================
-        // CONFIGURAÇÕES SUPABASE - PRONTAS PARA O PROXIMO PASSO (.ENV)
+        // CONFIGURAÇÕES SUPABASE
         // =========================================================================
-        // No próximo módulo, estas chaves lerão de forma nativa as suas variáveis globais.
         const SUPABASE_URL = window._env_?.SUPABASE_URL || 'https://fxetjbrwsjyjpsvlbrdf.supabase.co';
         const SUPABASE_ANON_KEY = window._env_?.SUPABASE_ANON_KEY || 'sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU';
         
-        // Exemplo de chamada de inicialização do cliente Supabase:
-        // const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        // =========================================================================
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // 1. Alternador de Abas do Menu Interno
         function switchTab(tabId, clickedButton) {
@@ -471,7 +471,9 @@
                 btn.classList.add('text-white/60');
             });
             
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if (targetTab) targetTab.classList.remove('hidden');
+            
             clickedButton.classList.add('bg-white/10', 'text-cyan-400');
             clickedButton.classList.remove('text-white/60');
         }
@@ -481,6 +483,7 @@
             const sidebar = document.getElementById('sidebar');
             const icon = document.getElementById('minimizeIcon');
             
+            if (!sidebar || !icon) return;
             sidebar.classList.toggle('sidebar-minimized');
             
             if (sidebar.classList.contains('sidebar-minimized')) {
@@ -490,22 +493,71 @@
             }
         }
 
-        // 3. Funções do Modal de Vendas
-        function openVendaModal() {
-            document.getElementById('vendaModal').classList.remove('hidden');
+        // 3. Funções do Modal Dinâmico (Vendas vs Catálogo/Estoque)
+        function openVendaModal(modo = 'venda') {
+            const modal = document.getElementById('vendaModal');
+            const titulo = document.getElementById('modal-titulo');
+            const containerCliente = document.getElementById('container-cliente');
+            const inputCliente = document.getElementById('venda-cliente');
+            const btnSubmit = document.getElementById('btn-submit-modal');
+            const inputModo = document.getElementById('venda-modo');
+
+            if (!modal) return;
+            
+            inputModo.value = modo;
+
+            if (modo === 'catalogo') {
+                titulo.innerHTML = `<i class="fa-solid fa-box-open text-purple-400"></i> Adicionar ao Catálogo / Estoque`;
+                containerCliente.classList.add('hidden');
+                inputCliente.removeAttribute('required');
+                btnSubmit.innerText = "Salvar no Catálogo da Empresa";
+            } else {
+                titulo.innerHTML = `<i class="fa-solid fa-cart-plus text-cyan-400"></i> Registrar Lançamento de Venda`;
+                containerCliente.classList.remove('hidden');
+                btnSubmit.innerText = "Confirmar e Lançar Venda";
+            }
+
+            modal.classList.remove('hidden');
         }
+
         function closeVendaModal() {
-            document.getElementById('vendaModal').classList.add('hidden');
+            const modal = document.getElementById('vendaModal');
+            if (modal) modal.classList.add('hidden');
         }
-        function handleSalvarVenda(e) {
+
+        async function handleSalvarVenda(e) {
             e.preventDefault();
+            const modo = document.getElementById('venda-modo').value;
             const tipo = document.getElementById('venda-tipo').value;
             const nome = document.getElementById('venda-nome').value;
-            const valor = document.getElementById('venda-valor').value;
+            const valor = parseFloat(document.getElementById('venda-valor').value);
             
-            alert(`Sucesso! ${tipo} ("${nome}") no valor de R$ ${valor} lançado no Supabase em tempo real.`);
-            closeVendaModal();
-            e.target.reset();
+            try {
+                if (modo === 'catalogo') {
+                    // Direciona o insert para a tabela específica de serviços e produtos da empresa
+                    const { data, error } = await _supabase
+                        .from('servicos_produtos')
+                        .insert([{ tipo, nome, valor, criado_em: new Date() }]);
+
+                    if (error) throw error;
+                    alert(`Sucesso! ${tipo} "${nome}" adicionado com sucesso ao estoque/catálogo.`);
+                } else {
+                    // Mantém o comportamento de registrar movimentação financeira de venda realizada
+                    const cliente = document.getElementById('venda-cliente').value;
+                    const { data, error } = await _supabase
+                        .from('vendas')
+                        .insert([{ tipo, nome, valor, cliente, criado_em: new Date() }]);
+
+                    if (error) throw error;
+                    alert(`Sucesso! Venda de ${tipo} ("${nome}") registrada no Supabase em tempo real.`);
+                }
+
+                closeVendaModal();
+                e.target.reset();
+            } catch (err) {
+                console.error('Erro ao processar requisição:', err.message);
+                alert('Erro ao sincronizar com o Supabase: ' + err.message);
+            }
         }
 
         // 4. Mecanismo de Busca Global na Lista de Clientes
@@ -517,16 +569,64 @@
         }
 
         // =========================================================================
-        // SISTEMA DE SINCRONIZAÇÃO EM TEMPO REAL OPERACIONAL
+        // GESTÃO E CRIAÇÃO DE COLABORADORES
         // =========================================================================
-        
-        // Altera o status do veículo salvando na pipeline que dispara eventos no app do cliente
-        function atualizarStatusClienteRealtime(fase) {
-            localStorage.setItem('ceramink_status_veiculo', fase);
-            console.log(`[Realtime]: Veículo CAA-2026 atualizado para a fase: ${fase}`);
+        async function handleCadastrarColaborador(e) {
+            e.preventDefault();
+            
+            const nome = document.getElementById('colab-nome').value;
+            const email = document.getElementById('colab-email').value;
+            const documento = document.getElementById('colab-documento').value;
+            const whatsapp = document.getElementById('colab-whatsapp').value;
+            const endereco = document.getElementById('colab-endereco').value;
+            const remuneracao = document.getElementById('colab-remuneracao').value;
+            const senha = document.getElementById('colab-senha').value;
+
+            try {
+                const { data: authData, error: authError } = await _supabase.auth.signUp({
+                    email: email,
+                    password: senha,
+                    options: {
+                        data: {
+                            full_name: nome,
+                            role: 'colaborador'
+                        }
+                    }
+                });
+
+                if (authError) throw authError;
+
+                const { error: dbError } = await _supabase
+                    .from('colaboradores')
+                    .insert([{
+                        id: authData.user?.id,
+                        nome,
+                        email,
+                        documento,
+                        whatsapp,
+                        endereco,
+                        remuneracao,
+                        criado_em: new Date()
+                    }]);
+
+                if (dbError) throw dbError;
+
+                alert('Colaborador cadastrado com sucesso e reconhecido pelo Supabase!');
+                e.target.reset();
+            } catch (error) {
+                console.error('Erro no cadastro do Supabase:', error.message);
+                alert('Erro ao registrar colaborador: ' + error.message);
+            }
         }
 
-        // Inserção direta de dados estilo planilha na agenda operacional
+        // =========================================================================
+        // SISTEMA DE SINCRONIZAÇÃO EM TEMPO REAL OPERACIONAL
+        // =========================================================================
+        function atualizarStatusClienteRealtime(fase) {
+            localStorage.setItem('ceramink_status_veiculo', fase);
+            console.log(`[Realtime]: Veículo CAA-2026 updated to: ${fase}`);
+        }
+
         function adicionarDiretoNaPlanilha(e) {
             e.preventDefault();
 
@@ -537,6 +637,7 @@
             const hora = document.getElementById('agenda-hora').value;
 
             const tabelaCorpo = document.getElementById('planilha-agenda-corpo');
+            if (!tabelaCorpo) return;
             
             const novaLinhaHTML = `
                 <tr class="hover:bg-white/5 transition-colors bg-cyan-500/5 transition-all duration-500">
@@ -554,42 +655,47 @@
         }
 
         // 5. Inicialização e Controle do Gráfico (Chart.js)
-        const ctx = document.getElementById('dashboardChart').getContext('2d');
-        let chartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array.from({length: 30}, (_, i) => `Dia ${i+1}`),
-                datasets: [{
-                    data: Array.from({length: 30}, () => Math.floor(Math.random() * 4000) + 1000),
-                    borderColor: '#00d4ff',
-                    backgroundColor: 'rgba(0, 212, 255, 0.02)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: true
-                }]
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.4)' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.4)' } }
+        const canvasElement = document.getElementById('dashboardChart');
+        let chartInstance = null;
+
+        if (canvasElement) {
+            const ctx = canvasElement.getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 30}, (_, i) => `Dia ${i+1}`),
+                    datasets: [{
+                        data: Array.from({length: 30}, () => Math.floor(Math.random() * 4000) + 1000),
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.02)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.4)' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.4)' } }
+                    }
                 }
-            }
-        });
+            });
+        }
 
         function changeChartPeriod(days) {
+            if (!chartInstance) return;
             chartInstance.data.labels = Array.from({length: days}, (_, i) => `Dia ${i+1}`);
             chartInstance.data.datasets[0].data = Array.from({length: days}, () => Math.floor(Math.random() * 5000) + 1500);
             chartInstance.update();
         }
 
-        // Sincroniza o estado inicial do seletor com o localStorage no carregamento
         document.addEventListener("DOMContentLoaded", () => {
-            const faseAtual = localStorage.getItem('ceramink_status_veiculo') || 1;
+            const faseAtual = localStorage.getItem('ceramink_status_veiculo') || "1";
             const selectElement = document.getElementById('status-civic');
-            if(selectElement) selectElement.value = faseAtual;
+            if (selectElement) selectElement.value = faseAtual;
         });
     </script>
 </body>
