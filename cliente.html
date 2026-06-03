@@ -45,11 +45,10 @@
             outline: none;
         }
 
-        /* Classes de transição da barra de progresso */
         .step-dot { transition: all 0.5s ease; }
         .step-line-fill { transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        /* Ajuste do ícone do calendário/relógio nativo no dark mode */
+        input Harvey::-webkit-calendar-picker-indicator,
         input::-webkit-calendar-picker-indicator {
             filter: invert(1);
         }
@@ -226,6 +225,7 @@
                 const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
                 
                 if (sessionError || !session) {
+                    console.log("Nenhuma sessão encontrada ou erro. Redirecionando...");
                     window.location.href = 'login.html';
                     return;
                 }
@@ -237,7 +237,7 @@
                     nomeExibicao = usuarioLogado.user_metadata.nome || usuarioLogado.user_metadata.full_name || usuarioLogado.user_metadata.display_name;
                 }
 
-                // Força busca na tabela customizada 'usuarios' para garantir sincronia completa
+                // Busca na tabela customizada 'usuarios'
                 const { data: perfil, error: dbError } = await _supabase
                     .from('usuarios')
                     .select('nome')
@@ -254,23 +254,21 @@
 
                 document.getElementById('cliente-nome-topo').innerText = nomeExibicao;
 
-                // Após validar usuário, busca dados dinâmicos do banco
+                // Executa a carga de dados
                 buscarDadosVeiculoEStatus();
                 buscarHistoricoPedidos();
-                escutarMudancasEmTempoReal();
+                escutarMudancasEmTempoReal(); // Corrigida a chamada aqui!
 
             } catch (err) {
-                console.error("Erro na verificação de sessão:", err);
-                window.location.href = 'login.html';
+                console.error("Erro interno no painel do cliente:", err);
             }
         }
 
         // 2. BUSCAR VEÍCULO E STATUS ATUALIZADOS DO BANCO
         async function buscarDadosVeiculoEStatus() {
             try {
-                // Busca o serviço/veículo mais recente que não esteja finalizado ou o último ativo
                 const { data, error } = await _supabase
-                    .from('servicos') // Altere para o nome exato da sua tabela de ordens/serviços
+                    .from('servicos') 
                     .select('veiculo, fase_status')
                     .eq('id_usuario', usuarioLogado.id)
                     .order('criado_em', { ascending: false })
@@ -347,7 +345,7 @@
         }
 
         // 4. ESCUTAR MUDANÇAS EM TEMPO REAL (REALTIME)
-        function escutartMudancasEmTempoReal() {
+        function escutarMudancasEmTempoReal() {
             _supabase
                 .channel('mudancas-servicos')
                 .on('postgres_changes', { 
@@ -360,7 +358,7 @@
                         document.getElementById('veiculo-titulo').innerText = payload.new.veiculo;
                         atualizarTimelineVisual(payload.new.fase_status);
                         enviarNotificacaoFase(payload.new.fase_status, payload.new.veiculo);
-                        buscarHistoricoPedidos(); // Recarrega o histórico caso tenha mudado algo
+                        buscarHistoricoPedidos(); 
                     }
                 })
                 .subscribe();
@@ -371,7 +369,7 @@
             const container = document.getElementById('historico-cliente');
             try {
                 const { data, error } = await _supabase
-                    .from('historico_pedidos') // Substitua pelo nome correto da sua tabela de histórico/vendas/agendamentos
+                    .from('historico_pedidos') 
                     .select('*')
                     .eq('id_usuario', usuarioLogado.id)
                     .order('criado_em', { ascending: false });
@@ -396,10 +394,10 @@
                         iconeStatus = '<i class="fa-solid fa-circle-xmark"></i>';
                     }
 
-                    const dataFormatada = new Date(item.criated_at || item.criado_em).toLocaleDateString('pt-BR');
+                    const dataFormatada = new Date(item.criado_em).toLocaleDateString('pt-BR');
 
                     const card = `
-                        <div class="p-3 bg-black/20 border border-white/5 rounded-xl space-y-1">
+                        <div class="p-3 bg-black/20 border border-white/5 rounded-xl space-y-1 mb-2">
                             <div class="flex justify-between font-bold">
                                 <span>${item.tipo_icone || '📦'} ${item.titulo}</span>
                                 <span class="text-purple-400">R$ ${parseFloat(item.valor).toFixed(2).replace('.', ',')}</span>
@@ -417,7 +415,7 @@
             }
         }
 
-        // 6. ENVIAR SOLICITAÇÃO DE AGENDAMENTO PARA O BANCO (ADMIN)
+        // 6. ENVIAR SOLICITAÇÃO DE AGENDAMENTO PARA O BANCO
         async function handleAgendamento(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-agendar');
@@ -427,7 +425,6 @@
             const dataInput = document.getElementById('agenda-data').value;
             const hora = document.getElementById('agenda-hora').value;
 
-            // Mapeamento simples de valores padrões do formulário
             let valor = 150.00;
             if (servico.includes("Polimento")) valor = 450.00;
             if (servico.includes("Vitrificação")) valor = 1200.00;
@@ -436,7 +433,7 @@
 
             try {
                 const { error } = await _supabase
-                    .from('historico_pedidos') // Salva unificado na tabela pública monitorada pelo admin
+                    .from('historico_pedidos') 
                     .insert([{
                         id_usuario: usuarioLogado.id,
                         titulo: servico,
@@ -506,25 +503,21 @@
         function enviarNotificacaoFase(fase, modeloCarro) {
             if (Notification.permission === "granted") {
                 const config = fasesConfig[fase] || fasesConfig[1];
-                new Notification(`Ceramink: Status Atualizado!`, {
+                new Notification(`Ceramink: Status Updated!`, {
                     body: `${modeloCarro || 'Seu veículo'} mudou para: ${config.badge}`,
                     icon: "logo.jpeg"
                 });
             }
         }
 
-        // CORREÇÃO: BOTÃO DESCONECTAR FUNCIONAL
+        // DESCONECTAR AJUSTADO E SEGURO
         async function desconectar() {
             try {
-                const { error } = await _supabase.auth.signOut();
-                if (error) throw error;
-                
-                // Limpa caches locais por garantia
+                await _supabase.auth.signOut();
                 localStorage.clear();
                 window.location.href = 'index.html';
             } catch (err) {
                 console.error("Erro ao sair da conta:", err);
-                // Força o redirecionamento mesmo se a API falhar
                 window.location.href = 'index.html';
             }
         }
