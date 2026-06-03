@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ceramink - Espaço do Cliente</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -52,14 +50,13 @@
         .step-line-fill { transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
         
         /* Ajuste do ícone do calendário/relógio nativo no dark mode */
-        input Harvey::-webkit-calendar-picker-indicator {
+        input::-webkit-calendar-picker-indicator {
             filter: invert(1);
         }
     </style>
 </head>
 <body class="font-sans-modern text-white min-h-screen flex flex-col justify-between p-4 md:p-6 lg:p-8 relative">
 
-    <!-- CABEÇALHO DA PÁGINA -->
     <header class="w-full max-w-6xl mx-auto flex justify-between items-center pb-6 border-b border-white/5 z-10">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 p-[1px]">
@@ -69,7 +66,7 @@
             </div>
             <div>
                 <span class="text-xs text-white/40 block">Olá, Proprietário</span>
-                <h1 id="cliente-nome-topo" class="text-sm md:text-base font-bold text-white">Carregando...</h1>
+                <h1 id="cliente-nome-topo" class="text-sm md:text-base font-bold text-white">Buscando perfil...</h1>
             </div>
         </div>
         
@@ -83,30 +80,25 @@
         </div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL -->
     <main class="w-full max-w-6xl mx-auto flex-1 my-6 grid grid-cols-1 lg:grid-cols-3 gap-6 z-10">
         
-        <!-- COLUNA ESQUERDA E CENTRAL -->
         <div class="lg:col-span-2 space-y-6">
             
-            <!-- CARD 1: RASTREAMENTO DO VEÍCULO EM TEMPO REAL -->
             <div class="cloud-container rounded-2xl p-6 space-y-6">
                 <div class="flex justify-between items-start border-b border-white/5 pb-3">
                     <div>
                         <span class="text-[10px] uppercase font-automotive text-cyan-400 tracking-wider">Acompanhamento Realtime</span>
-                        <h2 class="text-base font-bold mt-0.5" id="veiculo-titulo">Buscando veículo...</h2>
+                        <h2 class="text-base font-bold mt-0.5" id="veiculo-titulo">Nenhum veículo ativo</h2>
                     </div>
                     <span id="status-badge" class="px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded-lg text-[10px] font-bold uppercase tracking-wider">
                         Aguardando
                     </span>
                 </div>
 
-                <!-- LINHA DO TEMPO VISUAL AUTOMÁTICA -->
                 <div class="relative flex flex-col sm:flex-row justify-between items-center gap-6 sm:gap-2 px-4 py-2">
                     <div class="absolute top-5 left-4 right-4 h-[2px] bg-white/10 hidden sm:block z-0"></div>
                     <div id="progress-bar-line" class="absolute top-5 left-4 h-[2px] bg-gradient-to-r from-cyan-400 to-purple-500 hidden sm:block z-0 step-line-fill" style="width: 0%;"></div>
 
-                    <!-- Steps -->
                     <div id="step-1" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500">
                         <div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">1</div>
                         <span class="text-xs font-semibold">1. Recebido</span>
@@ -124,16 +116,15 @@
 
                     <div id="step-4" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500">
                         <div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">4</div>
-                        <span class="text-xs font-semibold">4. Pronto para Retirada</span>
+                        <span class="text-xs font-semibold">4. Retirada</span>
                     </div>
                 </div>
 
                 <div class="text-center text-xs text-white/50 bg-black/20 p-3 rounded-xl border border-white/5">
-                    <i class="fa-solid fa-circle-info text-cyan-400 mr-1"></i> <span id="status-descricao">O veículo está na fila aguardando o início dos procedimentos.</span>
+                    <i class="fa-solid fa-circle-info text-cyan-400 mr-1"></i> <span id="status-descricao">Nenhum serviço em andamento no momento.</span>
                 </div>
             </div>
 
-            <!-- CARD 2: VITRINE -->
             <div class="cloud-container rounded-2xl p-6 space-y-4">
                 <div class="flex justify-between items-center border-b border-white/5 pb-2">
                     <h3 class="text-sm font-bold font-automotive tracking-wide text-purple-400"><i class="fa-solid fa-spray-can-sparkles"></i> Vitrine de Cuidados Premium</h3>
@@ -169,7 +160,6 @@
                 </div>
             </div>
 
-            <!-- CARD 3: SOLICITAR AGENDAMENTO (HORÁRIO DETALHADO ADICIONADO AQUI) -->
             <div class="cloud-container rounded-2xl p-6 space-y-4">
                 <h3 class="text-sm font-bold font-automotive tracking-wide text-cyan-400"><i class="fa-solid fa-calendar-plus"></i> Solicitar Novo Agendamento</h3>
                 <form onsubmit="handleAgendamento(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -191,29 +181,20 @@
                     </div>
                     <div class="space-y-1">
                         <label class="text-white/60">Escolha o Horário Exato</label>
-                        <!-- Mudado de select para input type time para permitir precisão de minutos -->
                         <input type="time" id="agenda-hora" required class="client-input w-full p-3 rounded-xl text-white text-center font-bold tracking-wide">
                     </div>
-                    <button type="submit" class="sm:col-span-2 w-full bg-gradient-to-r from-cyan-400 to-purple-500 py-3.5 rounded-xl font-bold text-sm text-black uppercase tracking-wider">
+                    <button type="submit" id="btn-agendar" class="sm:col-span-2 w-full bg-gradient-to-r from-cyan-400 to-purple-500 py-3.5 rounded-xl font-bold text-sm text-black uppercase tracking-wider disabled:opacity-55">
                         Confirmar Solicitação de Vaga
                     </button>
                 </form>
             </div>
         </div>
 
-        <!-- COLUNA DIREITA: HISTÓRICO -->
         <div class="space-y-6">
             <div class="cloud-container rounded-2xl p-6 space-y-4 flex flex-col h-full">
                 <h3 class="text-sm font-bold border-b border-white/5 pb-2"><i class="fa-solid fa-clock-rotate-left text-purple-400"></i> Histórico & Pedidos</h3>
                 <div id="historico-cliente" class="space-y-3 overflow-y-auto max-h-[500px] pr-1 text-xs">
-                    <div class="p-3 bg-black/20 border border-white/5 rounded-xl space-y-1">
-                        <div class="flex justify-between font-bold">
-                            <span>Lavagem de Chassi + Motor</span>
-                            <span class="text-purple-400">R$ 220,00</span>
-                        </div>
-                        <p class="text-white/40 text-[11px]">Realizado em: 14/04/2026</p>
-                        <span class="text-emerald-400 text-[10px] font-bold"><i class="fa-solid fa-circle-check"></i> Finalizado</span>
-                    </div>
+                    <p class="text-white/30 text-center py-4">Buscando histórico...</p>
                 </div>
             </div>
         </div>
@@ -230,6 +211,8 @@
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        let usuarioLogado = null;
+
         const fasesConfig = {
             1: { badge: "Recebido", desc: "Veículo deu entrada no pátio e passou pela vistoria inicial.", pct: "5%", color: "#00d4ff" },
             2: { badge: "Preparação", desc: "Processo de lavagem técnica detalhada e mascaramento de borrachas iniciado.", pct: "35%", color: "#00d4ff" },
@@ -237,6 +220,7 @@
             4: { badge: "Pronto para Retirada", desc: "Finalizado! Seu veículo passou pelo controle de qualidade e já pode ser retirado.", pct: "100%", color: "#10b981" }
         };
 
+        // 1. CARREGAR PERFIL E INICIAR APLICAÇÃO
         async function verificarSessaoEBuscarPerfil() {
             try {
                 const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
@@ -246,19 +230,18 @@
                     return;
                 }
 
-                const userAuth = session.user;
+                usuarioLogado = session.user;
                 let nomeExibicao = "";
 
-                // Fallbacks seguros de metadados para remover o "Carregando..." instantaneamente
-                if (userAuth.user_metadata) {
-                    nomeExibicao = userAuth.user_metadata.nome || userAuth.user_metadata.display_name || userAuth.user_metadata.full_name || "";
+                if (usuarioLogado.user_metadata) {
+                    nomeExibicao = usuarioLogado.user_metadata.nome || usuarioLogado.user_metadata.full_name || usuarioLogado.user_metadata.display_name;
                 }
 
-                // Tenta buscar no banco de dados complementar
+                // Força busca na tabela customizada 'usuarios' para garantir sincronia completa
                 const { data: perfil, error: dbError } = await _supabase
                     .from('usuarios')
                     .select('nome')
-                    .eq('id', userAuth.id)
+                    .eq('id', usuarioLogado.id)
                     .maybeSingle();
 
                 if (!dbError && perfil && perfil.nome) {
@@ -266,27 +249,56 @@
                 }
 
                 if (!nomeExibicao) {
-                    nomeExibicao = userAuth.email.split('@')[0];
+                    nomeExibicao = usuarioLogado.email.split('@')[0];
                 }
 
                 document.getElementById('cliente-nome-topo').innerText = nomeExibicao;
 
-                const veiculoSalvo = localStorage.getItem('ceramink_modelo_veiculo') || "Civic Type R — CAA-2026";
-                document.getElementById('veiculo-titulo').innerText = veiculoSalvo;
+                // Após validar usuário, busca dados dinâmicos do banco
+                buscarDadosVeiculoEStatus();
+                buscarHistoricoPedidos();
+                escutarMudancasEmTempoReal();
 
             } catch (err) {
                 console.error("Erro na verificação de sessão:", err);
-                document.getElementById('cliente-nome-topo').innerText = "Proprietário";
+                window.location.href = 'login.html';
             }
         }
 
+        // 2. BUSCAR VEÍCULO E STATUS ATUALIZADOS DO BANCO
+        async function buscarDadosVeiculoEStatus() {
+            try {
+                // Busca o serviço/veículo mais recente que não esteja finalizado ou o último ativo
+                const { data, error } = await _supabase
+                    .from('servicos') // Altere para o nome exato da sua tabela de ordens/serviços
+                    .select('veiculo, fase_status')
+                    .eq('id_usuario', usuarioLogado.id)
+                    .order('criado_em', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (data) {
+                    document.getElementById('veiculo-titulo').innerText = data.veiculo;
+                    atualizarTimelineVisual(data.fase_status || 1);
+                } else {
+                    document.getElementById('veiculo-titulo').innerText = "Nenhum veículo ativo";
+                    atualizarTimelineVisual(1);
+                }
+            } catch (e) {
+                console.error("Erro ao buscar status do veículo:", e);
+            }
+        }
+
+        // 3. ATUALIZAR INTERFACE DA TIMELINE
         function atualizarTimelineVisual(fase) {
             fase = parseInt(fase) || 1;
-            const config = fasesConfig[fase];
+            const config = fasesConfig[fase] || fasesConfig[1];
 
             if(document.getElementById('status-badge')) {
-                document.getElementById('status-badge').innerText = config.badge;
                 const badge = document.getElementById('status-badge');
+                badge.innerText = config.badge;
                 badge.style.color = config.color;
                 badge.style.backgroundColor = `${config.color}15`;
             }
@@ -334,17 +346,155 @@
             }
         }
 
+        // 4. ESCUTAR MUDANÇAS EM TEMPO REAL (REALTIME)
+        function escutartMudancasEmTempoReal() {
+            _supabase
+                .channel('mudancas-servicos')
+                .on('postgres_changes', { 
+                    event: 'UPDATE', 
+                    schema: 'public', 
+                    table: 'servicos', 
+                    filter: `id_usuario=eq.${usuarioLogado.id}` 
+                }, (payload) => {
+                    if (payload.new) {
+                        document.getElementById('veiculo-titulo').innerText = payload.new.veiculo;
+                        atualizarTimelineVisual(payload.new.fase_status);
+                        enviarNotificacaoFase(payload.new.fase_status, payload.new.veiculo);
+                        buscarHistoricoPedidos(); // Recarrega o histórico caso tenha mudado algo
+                    }
+                })
+                .subscribe();
+        }
+
+        // 5. CARREGAR HISTÓRICO E PEDIDOS INTEGRADOS
+        async function buscarHistoricoPedidos() {
+            const container = document.getElementById('historico-cliente');
+            try {
+                const { data, error } = await _supabase
+                    .from('historico_pedidos') // Substitua pelo nome correto da sua tabela de histórico/vendas/agendamentos
+                    .select('*')
+                    .eq('id_usuario', usuarioLogado.id)
+                    .order('criado_em', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<p class="text-white/30 text-center py-4">Nenhum registro encontrado.</p>`;
+                    return;
+                }
+
+                container.innerHTML = '';
+                data.forEach(item => {
+                    let statusClasse = 'text-amber-400';
+                    let iconeStatus = '<i class="fa-solid fa-clock"></i>';
+                    
+                    if(item.status === 'Finalizado' || item.status === 'Concluído') {
+                        statusClasse = 'text-emerald-400';
+                        iconeStatus = '<i class="fa-solid fa-circle-check"></i>';
+                    } else if(item.status === 'Cancelado') {
+                        statusClasse = 'text-red-400';
+                        iconeStatus = '<i class="fa-solid fa-circle-xmark"></i>';
+                    }
+
+                    const dataFormatada = new Date(item.criated_at || item.criado_em).toLocaleDateString('pt-BR');
+
+                    const card = `
+                        <div class="p-3 bg-black/20 border border-white/5 rounded-xl space-y-1">
+                            <div class="flex justify-between font-bold">
+                                <span>${item.tipo_icone || '📦'} ${item.titulo}</span>
+                                <span class="text-purple-400">R$ ${parseFloat(item.valor).toFixed(2).replace('.', ',')}</span>
+                            </div>
+                            <p class="text-white/40 text-[11px]">${item.descricao || ''} • ${dataFormatada}</p>
+                            <span class="${statusClasse} text-[10px] font-bold">${iconeStatus} ${item.status}</span>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', card);
+                });
+
+            } catch (e) {
+                console.error("Erro ao puxar histórico:", e);
+                container.innerHTML = `<p class="text-red-400/60 text-center py-4">Erro ao carregar dados.</p>`;
+            }
+        }
+
+        // 6. ENVIAR SOLICITAÇÃO DE AGENDAMENTO PARA O BANCO (ADMIN)
+        async function handleAgendamento(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-agendar');
+            
+            const servico = document.getElementById('agenda-servico').value;
+            const veiculo = document.getElementById('agenda-veiculo').value;
+            const dataInput = document.getElementById('agenda-data').value;
+            const hora = document.getElementById('agenda-hora').value;
+
+            // Mapeamento simples de valores padrões do formulário
+            let valor = 150.00;
+            if (servico.includes("Polimento")) valor = 450.00;
+            if (servico.includes("Vitrificação")) valor = 1200.00;
+
+            btn.disabled = true;
+
+            try {
+                const { error } = await _supabase
+                    .from('historico_pedidos') // Salva unificado na tabela pública monitorada pelo admin
+                    .insert([{
+                        id_usuario: usuarioLogado.id,
+                        titulo: servico,
+                        valor: valor,
+                        descricao: `Carro: ${veiculo} | Data: ${dataInput.split('-').reverse().join('/')} às ${hora}h`,
+                        status: 'Aguardando Confirmação',
+                        tipo_icone: '🗓️',
+                        criado_em: new Date()
+                    }]);
+
+                if (error) throw error;
+
+                alert(`Agendamento solicitado com sucesso para às ${hora}h!`);
+                e.target.reset();
+                buscarHistoricoPedidos();
+
+            } catch (err) {
+                alert("Falha ao salvar agendamento: " + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // 7. COMPRAR PRODUTO DA VITRINE E ENVIAR AO ADMIN
+        async function comprarProduto(nome, preco) {
+            try {
+                const { error } = await _supabase
+                    .from('historico_pedidos')
+                    .insert([{
+                        id_usuario: usuarioLogado.id,
+                        titulo: nome,
+                        valor: preco,
+                        descricao: 'Adicionado à sua conta de entrega / Ordem de Serviço.',
+                        status: 'Separando no estoque',
+                        tipo_icone: '📦',
+                        criado_em: new Date()
+                    }]);
+
+                if (error) throw error;
+
+                alert(`Sucesso! O produto "${nome}" foi reservado e anexado à sua conta no painel administrativo.`);
+                buscarHistoricoPedidos();
+
+            } catch (err) {
+                alert("Erro ao processar reserva: " + err.message);
+            }
+        }
+
+        // NOTIFICAÇÕES NATIVAS DO NAVEGADOR
         function pedirPermissaoNotificacao() {
             if (!("Notification" in window)) {
                 alert("Este navegador não suporta notificações de desktop.");
                 return;
             }
-
             Notification.requestPermission().then(permission => {
                 if (permission === "granted") {
                     document.getElementById('btn-notificacao').innerHTML = '<i class="fa-solid fa-bell-ring text-emerald-400"></i> Avisos Ativos';
                     document.getElementById('btn-notificacao').classList.replace('text-purple-300', 'text-emerald-400');
-                    
                     new Notification("Ceramink Estética", {
                         body: "Excelente! Você receberá alertas em tempo real a cada mudança no seu veículo.",
                         icon: "logo.jpeg"
@@ -353,85 +503,41 @@
             });
         }
 
-        function enviarNotificacaoFase(fase) {
+        function enviarNotificacaoFase(fase, modeloCarro) {
             if (Notification.permission === "granted") {
-                const config = fasesConfig[fase];
-                const modeloCarro = localStorage.getItem('ceramink_modelo_veiculo') || "Seu veículo";
+                const config = fasesConfig[fase] || fasesConfig[1];
                 new Notification(`Ceramink: Status Atualizado!`, {
-                    body: `${modeloCarro} mudou para: ${config.badge}`,
+                    body: `${modeloCarro || 'Seu veículo'} mudou para: ${config.badge}`,
                     icon: "logo.jpeg"
                 });
             }
         }
 
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'ceramink_status_veiculo') {
-                const novaFase = parseInt(e.newValue);
-                atualizarTimelineVisual(novaFase);
-                enviarNotificacaoFase(novaFase);
+        // CORREÇÃO: BOTÃO DESCONECTAR FUNCIONAL
+        async function desconectar() {
+            try {
+                const { error } = await _supabase.auth.signOut();
+                if (error) throw error;
+                
+                // Limpa caches locais por garantia
+                localStorage.clear();
+                window.location.href = 'index.html';
+            } catch (err) {
+                console.error("Erro ao sair da conta:", err);
+                // Força o redirecionamento mesmo se a API falhar
+                window.location.href = 'index.html';
             }
-        });
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             verificarSessaoEBuscarPerfil();
-            
-            const faseSalva = localStorage.getItem('ceramink_status_veiculo') || 1;
-            atualizarTimelineVisual(faseSalva);
+            document.getElementById('agenda-data').setAttribute('min', new Date().toISOString().split('T')[0]);
 
             if (Notification.permission === "granted") {
                 document.getElementById('btn-notificacao').innerHTML = '<i class="fa-solid fa-bell-ring text-emerald-400"></i> Avisos Ativos';
                 document.getElementById('btn-notificacao').classList.replace('text-purple-300', 'text-emerald-400');
             }
         });
-
-        function comprarProduto(nome, preco) {
-            const container = document.getElementById('historico-cliente');
-            const itemHTML = `
-                <div class="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl space-y-1 animate-fade-in">
-                    <div class="flex justify-between font-bold">
-                        <span>📦 ${nome}</span>
-                        <span class="text-purple-400">R$ ${preco.toFixed(2).replace('.', ',')}</span>
-                    </div>
-                    <p class="text-white/40 text-[10px]">Pedido adicionado à sua conta de entrega.</p>
-                    <span class="text-amber-400 text-[10px] font-bold"><i class="fa-solid fa-basket-shopping"></i> Separando no estoque</span>
-                </div>
-            `;
-            container.insertAdjacentHTML('afterbegin', itemHTML);
-            alert(`Sucesso! O produto "${nome}" foi reservado e anexado à sua ordem de serviço.`);
-        }
-
-        function handleAgendamento(e) {
-            e.preventDefault();
-            const servico = document.getElementById('agenda-servico').value;
-            const veiculo = document.getElementById('agenda-veiculo').value;
-            const data = document.getElementById('agenda-data').value.split('-').reverse().join('/');
-            const hora = document.getElementById('agenda-hora').value; // Coleta o horário exato (Ex: 14:45)
-            
-            localStorage.setItem('ceramink_modelo_veiculo', veiculo);
-            document.getElementById('veiculo-titulo').innerText = veiculo;
-
-            const container = document.getElementById('historico-cliente');
-            const itemHTML = `
-                <div class="p-3 bg-cyan-500/5 border border-cyan-400/20 rounded-xl space-y-1">
-                    <div class="flex justify-between font-bold">
-                        <span>🗓️ ${servico}</span>
-                        <span class="text-cyan-400">Agendado</span>
-                    </div>
-                    <p class="text-white/40 text-[10px]">Data: ${data} às ${hora}h | Carro: ${veiculo}</p>
-                    <span class="text-amber-400 text-[10px] font-bold"><i class="fa-solid fa-clock"></i> Aguardando Confirmação</span>
-                </div>
-            `;
-            container.insertAdjacentHTML('afterbegin', itemHTML);
-            alert(`Agendamento solicitado com sucesso para às ${hora}h!`);
-            e.target.reset();
-        }
-
-        async function desconectar() {
-            await _supabase.auth.signOut();
-            window.location.href = 'index.html';
-        }
-
-        document.getElementById('agenda-data').setAttribute('min', new Date().toISOString().split('T')[0]);
     </script>
 </body>
 </html>
