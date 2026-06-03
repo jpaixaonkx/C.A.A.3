@@ -50,6 +50,11 @@
         /* Classes de transição da barra de progresso */
         .step-dot { transition: all 0.5s ease; }
         .step-line-fill { transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Ajuste do ícone do calendário/relógio nativo no dark mode */
+        input Harvey::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
     </style>
 </head>
 <body class="font-sans-modern text-white min-h-screen flex flex-col justify-between p-4 md:p-6 lg:p-8 relative">
@@ -64,13 +69,11 @@
             </div>
             <div>
                 <span class="text-xs text-white/40 block">Olá, Proprietário</span>
-                <!-- ID modificado para receber o nome dinâmico do banco -->
                 <h1 id="cliente-nome-topo" class="text-sm md:text-base font-bold text-white">Carregando...</h1>
             </div>
         </div>
         
         <div class="flex items-center gap-3">
-            <!-- Botão de Ativar Notificações -->
             <button id="btn-notificacao" onclick="pedirPermissaoNotificacao()" class="text-xs bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 px-3 py-2 rounded-xl flex items-center gap-2 text-purple-300 transition-all">
                 <i class="fa-solid fa-bell"></i> Ativar Avisos
             </button>
@@ -83,7 +86,7 @@
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="w-full max-w-6xl mx-auto flex-1 my-6 grid grid-cols-1 lg:grid-cols-3 gap-6 z-10">
         
-        <!-- COLUNA ESQUERDA E CENTRAL: STATUS, AGENDAMENTO E PRODUTOS -->
+        <!-- COLUNA ESQUERDA E CENTRAL -->
         <div class="lg:col-span-2 space-y-6">
             
             <!-- CARD 1: RASTREAMENTO DO VEÍCULO EM TEMPO REAL -->
@@ -91,10 +94,8 @@
                 <div class="flex justify-between items-start border-b border-white/5 pb-3">
                     <div>
                         <span class="text-[10px] uppercase font-automotive text-cyan-400 tracking-wider">Acompanhamento Realtime</span>
-                        <!-- ID adicionado para puxar a descrição real do carro atrelado se houver -->
                         <h2 class="text-base font-bold mt-0.5" id="veiculo-titulo">Buscando veículo...</h2>
                     </div>
-                    <!-- Status Badge Dinâmico -->
                     <span id="status-badge" class="px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded-lg text-[10px] font-bold uppercase tracking-wider">
                         Aguardando
                     </span>
@@ -102,30 +103,25 @@
 
                 <!-- LINHA DO TEMPO VISUAL AUTOMÁTICA -->
                 <div class="relative flex flex-col sm:flex-row justify-between items-center gap-6 sm:gap-2 px-4 py-2">
-                    <!-- Linha de fundo cinza -->
                     <div class="absolute top-5 left-4 right-4 h-[2px] bg-white/10 hidden sm:block z-0"></div>
-                    <!-- Linha de progresso ativa -->
                     <div id="progress-bar-line" class="absolute top-5 left-4 h-[2px] bg-gradient-to-r from-cyan-400 to-purple-500 hidden sm:block z-0 step-line-fill" style="width: 0%;"></div>
 
-                    <!-- Step 1 -->
+                    <!-- Steps -->
                     <div id="step-1" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500">
                         <div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">1</div>
                         <span class="text-xs font-semibold">1. Recebido</span>
                     </div>
 
-                    <!-- Step 2 -->
                     <div id="step-2" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500">
                         <div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">2</div>
                         <span class="text-xs font-semibold">2. Preparação</span>
                     </div>
 
-                    <!-- Step 3 -->
                     <div id="step-3" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500">
                         <div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">3</div>
                         <span class="text-xs font-semibold">3. Aplicação & Cura</span>
                     </div>
 
-                    <!-- Step 4 -->
                     <div id="step-4" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500">
                         <div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">4</div>
                         <span class="text-xs font-semibold">4. Pronto para Retirada</span>
@@ -137,7 +133,7 @@
                 </div>
             </div>
 
-            <!-- CARD 2: COMPRA DE PRODUTOS/MANUTENÇÃO DE ESTÉTICA -->
+            <!-- CARD 2: VITRINE -->
             <div class="cloud-container rounded-2xl p-6 space-y-4">
                 <div class="flex justify-between items-center border-b border-white/5 pb-2">
                     <h3 class="text-sm font-bold font-automotive tracking-wide text-purple-400"><i class="fa-solid fa-spray-can-sparkles"></i> Vitrine de Cuidados Premium</h3>
@@ -145,7 +141,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- Produto 1 -->
                     <div class="bg-black/30 border border-white/5 p-4 rounded-xl flex flex-col justify-between gap-3">
                         <div class="flex justify-between items-start">
                             <div>
@@ -159,11 +154,10 @@
                         </button>
                     </div>
 
-                    <!-- Produto 2 -->
                     <div class="bg-black/30 border border-white/5 p-4 rounded-xl flex flex-col justify-between gap-3">
                         <div class="flex justify-between items-start">
                             <div>
-                                <h4 class="text-xs font-bold text-white">噴 Liquid Glass - Spray de Brilho</h4>
+                                <h4 class="text-xs font-bold text-white">Liquid Glass - Spray de Brilho</h4>
                                 <p class="text-[11px] text-white/40 mt-1">Gera efeito hidrofóbico e toque aveludado.</p>
                             </div>
                             <span class="text-xs font-automotive text-cyan-400 font-bold">R$ 119,90</span>
@@ -175,7 +169,7 @@
                 </div>
             </div>
 
-            <!-- CARD 3: SOLICITAR AGENDAMENTO -->
+            <!-- CARD 3: SOLICITAR AGENDAMENTO (HORÁRIO DETALHADO ADICIONADO AQUI) -->
             <div class="cloud-container rounded-2xl p-6 space-y-4">
                 <h3 class="text-sm font-bold font-automotive tracking-wide text-cyan-400"><i class="fa-solid fa-calendar-plus"></i> Solicitar Novo Agendamento</h3>
                 <form onsubmit="handleAgendamento(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -196,11 +190,9 @@
                         <input type="date" id="agenda-data" required class="client-input w-full p-3 rounded-xl text-white">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-white/60">Melhor Horário</label>
-                        <select id="agenda-hora" class="client-input w-full p-3 rounded-xl text-white">
-                            <option value="08:00">08:00 (Manhã)</option>
-                            <option value="13:30">13:30 (Tarde)</option>
-                        </select>
+                        <label class="text-white/60">Escolha o Horário Exato</label>
+                        <!-- Mudado de select para input type time para permitir precisão de minutos -->
+                        <input type="time" id="agenda-hora" required class="client-input w-full p-3 rounded-xl text-white text-center font-bold tracking-wide">
                     </div>
                     <button type="submit" class="sm:col-span-2 w-full bg-gradient-to-r from-cyan-400 to-purple-500 py-3.5 rounded-xl font-bold text-sm text-black uppercase tracking-wider">
                         Confirmar Solicitação de Vaga
@@ -209,12 +201,11 @@
             </div>
         </div>
 
-        <!-- COLUNA DIREITA: HISTÓRICO E ADICIONAIS -->
+        <!-- COLUNA DIREITA: HISTÓRICO -->
         <div class="space-y-6">
             <div class="cloud-container rounded-2xl p-6 space-y-4 flex flex-col h-full">
                 <h3 class="text-sm font-bold border-b border-white/5 pb-2"><i class="fa-solid fa-clock-rotate-left text-purple-400"></i> Histórico & Pedidos</h3>
                 <div id="historico-cliente" class="space-y-3 overflow-y-auto max-h-[500px] pr-1 text-xs">
-                    <!-- Itens iniciais estáticos -->
                     <div class="p-3 bg-black/20 border border-white/5 rounded-xl space-y-1">
                         <div class="flex justify-between font-bold">
                             <span>Lavagem de Chassi + Motor</span>
@@ -232,18 +223,13 @@
         © 2026 CAA SYSTEM • ÁREA EXCLUSIVA DO CLIENTE
     </footer>
 
-    <!-- LÓGICA DE ATUALIZAÇÃO REALTIME E NOTIFICAÇÕES -->
     <script>
-        // =========================================================================
-        // CONFIGURAÇÕES SUPABASE CORRIGIDAS (VARIÁVEIS ANTES DA INSTÂNCIA)
-        // =========================================================================
+        // CONFIGURAÇÕES SUPABASE
         const SUPABASE_URL = window._env_?.SUPABASE_URL || 'https://fxetjbrwsjyjpsvlbrdf.supabase.co';
         const SUPABASE_ANON_KEY = window._env_?.SUPABASE_ANON_KEY || 'sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU';
         
-        // Agora sim, instanciado com as variáveis carregadas na memória
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Configurações das Fases do Processo
         const fasesConfig = {
             1: { badge: "Recebido", desc: "Veículo deu entrada no pátio e passou pela vistoria inicial.", pct: "5%", color: "#00d4ff" },
             2: { badge: "Preparação", desc: "Processo de lavagem técnica detalhada e mascaramento de borrachas iniciado.", pct: "35%", color: "#00d4ff" },
@@ -251,7 +237,6 @@
             4: { badge: "Pronto para Retirada", desc: "Finalizado! Seu veículo passou pelo controle de qualidade e já pode ser retirado.", pct: "100%", color: "#10b981" }
         };
 
-        // Função essencial: Carrega a sessão e captura o nome inserido no cadastro
         async function verificarSessaoEBuscarPerfil() {
             try {
                 const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
@@ -262,39 +247,43 @@
                 }
 
                 const userAuth = session.user;
+                let nomeExibicao = "";
 
-                // Busca as colunas nome e veiculo_modelo (caso use no painel de admin)
+                // Fallbacks seguros de metadados para remover o "Carregando..." instantaneamente
+                if (userAuth.user_metadata) {
+                    nomeExibicao = userAuth.user_metadata.nome || userAuth.user_metadata.display_name || userAuth.user_metadata.full_name || "";
+                }
+
+                // Tenta buscar no banco de dados complementar
                 const { data: perfil, error: dbError } = await _supabase
                     .from('usuarios')
                     .select('nome')
                     .eq('id', userAuth.id)
                     .maybeSingle();
 
-                if (dbError) throw dbError;
-
-                if (perfil && perfil.nome) {
-                    document.getElementById('cliente-nome-topo').innerText = perfil.nome;
-                } else {
-                    // Fallback caso a tabela pública demore a sincronizar
-                    document.getElementById('cliente-nome-topo').innerText = userAuth.user_metadata?.nome || "Cliente";
+                if (!dbError && perfil && perfil.nome) {
+                    nomeExibicao = perfil.nome;
                 }
 
-                // Ajusta o título do veículo dinamicamente com base no que está ativo localmente
+                if (!nomeExibicao) {
+                    nomeExibicao = userAuth.email.split('@')[0];
+                }
+
+                document.getElementById('cliente-nome-topo').innerText = nomeExibicao;
+
                 const veiculoSalvo = localStorage.getItem('ceramink_modelo_veiculo') || "Civic Type R — CAA-2026";
                 document.getElementById('veiculo-titulo').innerText = veiculoSalvo;
 
             } catch (err) {
                 console.error("Erro na verificação de sessão:", err);
-                document.getElementById('cliente-nome-topo').innerText = "Erro ao carregar";
+                document.getElementById('cliente-nome-topo').innerText = "Proprietário";
             }
         }
 
-        // Função para atualizar a timeline visualmente
         function atualizarTimelineVisual(fase) {
             fase = parseInt(fase) || 1;
             const config = fasesConfig[fase];
 
-            // Verifica se os elementos existem antes de alterar para evitar erros no console
             if(document.getElementById('status-badge')) {
                 document.getElementById('status-badge').innerText = config.badge;
                 const badge = document.getElementById('status-badge');
@@ -308,7 +297,6 @@
                 document.getElementById('progress-bar-line').style.width = config.pct;
             }
 
-            // Altera o estado visual de cada bolinha (Step)
             for (let i = 1; i <= 4; i++) {
                 const stepElement = document.getElementById(`step-${i}`);
                 if (!stepElement) continue;
@@ -346,7 +334,6 @@
             }
         }
 
-        // --- SISTEMA DE NOTIFICAÇÕES WEB ---
         function pedirPermissaoNotificacao() {
             if (!("Notification" in window)) {
                 alert("Este navegador não suporta notificações de desktop.");
@@ -377,7 +364,6 @@
             }
         }
 
-        // --- MONITOR REALTIME VIA STORAGE EVENT ---
         window.addEventListener('storage', function(e) {
             if (e.key === 'ceramink_status_veiculo') {
                 const novaFase = parseInt(e.newValue);
@@ -386,7 +372,6 @@
             }
         });
 
-        // Execução inicial ao carregar a página completamente
         document.addEventListener("DOMContentLoaded", () => {
             verificarSessaoEBuscarPerfil();
             
@@ -399,7 +384,6 @@
             }
         });
 
-        // --- OUTRAS FUNÇÕES DA PÁGINA ---
         function comprarProduto(nome, preco) {
             const container = document.getElementById('historico-cliente');
             const itemHTML = `
@@ -421,8 +405,8 @@
             const servico = document.getElementById('agenda-servico').value;
             const veiculo = document.getElementById('agenda-veiculo').value;
             const data = document.getElementById('agenda-data').value.split('-').reverse().join('/');
+            const hora = document.getElementById('agenda-hora').value; // Coleta o horário exato (Ex: 14:45)
             
-            // Armazena o modelo enviado para simular no rastreador superior
             localStorage.setItem('ceramink_modelo_veiculo', veiculo);
             document.getElementById('veiculo-titulo').innerText = veiculo;
 
@@ -433,12 +417,12 @@
                         <span>🗓️ ${servico}</span>
                         <span class="text-cyan-400">Agendado</span>
                     </div>
-                    <p class="text-white/40 text-[10px]">Data: ${data} | Carro: ${veiculo}</p>
+                    <p class="text-white/40 text-[10px]">Data: ${data} às ${hora}h | Carro: ${veiculo}</p>
                     <span class="text-amber-400 text-[10px] font-bold"><i class="fa-solid fa-clock"></i> Aguardando Confirmação</span>
                 </div>
             `;
             container.insertAdjacentHTML('afterbegin', itemHTML);
-            alert("Agendamento solicitado com sucesso!");
+            alert(`Agendamento solicitado com sucesso para às ${hora}h!`);
             e.target.reset();
         }
 
@@ -447,7 +431,6 @@
             window.location.href = 'index.html';
         }
 
-        // Bloqueia datas passadas no calendário
         document.getElementById('agenda-data').setAttribute('min', new Date().toISOString().split('T')[0]);
     </script>
 </body>

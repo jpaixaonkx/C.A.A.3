@@ -93,17 +93,27 @@
             try {
                 // Efetua a criação da credencial criptografada no módulo de Autenticação do Supabase
                 const { data, error } = await _supabase.auth.signUp({
-                    email: email,
-                    password: senha,
-                    options: {
+                    email: emailInserido,
+                    password: senhaInserida,
+                        options: {
                         data: {
-                            nome: nome,
-                            telefone: telefone,
-                            regra: 'cliente' // Define o acesso padrão como cliente
-                        }
+                        nome: nomeInserido,          // O que você usa no seu código
+                        display_name: nomeInserido,  // Corrige o ' - ' no painel do Supabase Auth
+                        full_name: nomeInserido      // Garante compatibilidade máxima
+                }
+                }
+            });
+                
+                if (data?.user) {
+                    await _supabase.from('usuarios').insert([
+                    { 
+                        id: data.user.id, 
+                        nome: nomeInserido, 
+                        email: emailInserido, 
+                        regra: 'cliente' 
                     }
-                });
-
+               ]);
+                }
                 if (error) throw error;
 
                 alert('Cadastro efetuado com sucesso! Redirecionando para a tela de login.');
