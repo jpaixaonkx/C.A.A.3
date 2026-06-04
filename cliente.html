@@ -48,10 +48,15 @@
         .step-dot { transition: all 0.5s ease; }
         .step-line-fill { transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        input Harvey::-webkit-calendar-picker-indicator,
         input::-webkit-calendar-picker-indicator {
             filter: invert(1);
         }
+        
+        /* Custom scrollbar para o chat e histórico */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.4); }
     </style>
 </head>
 <body class="font-sans-modern text-white min-h-screen flex flex-col justify-between p-4 md:p-6 lg:p-8 relative">
@@ -82,7 +87,7 @@
     <main class="w-full max-w-6xl mx-auto flex-1 my-6 grid grid-cols-1 lg:grid-cols-3 gap-6 z-10">
         
         <div class="lg:col-span-2 space-y-6">
-            
+            <!-- TIMELINE CARD -->
             <div class="cloud-container rounded-2xl p-6 space-y-6">
                 <div class="flex justify-between items-start border-b border-white/5 pb-3">
                     <div>
@@ -124,50 +129,26 @@
                 </div>
             </div>
 
+            <!-- VITRINE PREMIUM REALTIME -->
             <div class="cloud-container rounded-2xl p-6 space-y-4">
                 <div class="flex justify-between items-center border-b border-white/5 pb-2">
                     <h3 class="text-sm font-bold font-automotive tracking-wide text-purple-400"><i class="fa-solid fa-spray-can-sparkles"></i> Vitrine de Cuidados Premium</h3>
-                    <span class="text-[11px] text-white/40">Leve para a sua garagem</span>
+                    <span class="text-[11px] text-white/40">Estoque em tempo real</span>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="bg-black/30 border border-white/5 p-4 rounded-xl flex flex-col justify-between gap-3">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="text-xs font-bold text-white">Shampoo Automotivo Neutro (500ml)</h4>
-                                <p class="text-[11px] text-white/40 mt-1">Ideal para manter vitrificações e ceras.</p>
-                            </div>
-                            <span class="text-xs font-automotive text-cyan-400 font-bold">R$ 59,90</span>
-                        </div>
-                        <button onclick="comprarProduto('Shampoo Neutro', 59.90)" class="w-full bg-white/5 hover:bg-purple-500 hover:text-black py-2 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all">
-                            Adicionar ao Carro
-                        </button>
-                    </div>
-
-                    <div class="bg-black/30 border border-white/5 p-4 rounded-xl flex flex-col justify-between gap-3">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="text-xs font-bold text-white">Liquid Glass - Spray de Brilho</h4>
-                                <p class="text-[11px] text-white/40 mt-1">Gera efeito hidrofóbico e toque aveludado.</p>
-                            </div>
-                            <span class="text-xs font-automotive text-cyan-400 font-bold">R$ 119,90</span>
-                        </div>
-                        <button onclick="comprarProduto('Liquid Glass Spray', 119.90)" class="w-full bg-white/5 hover:bg-purple-500 hover:text-black py-2 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all">
-                            Adicionar ao Carro
-                        </button>
-                    </div>
+                <div id="vitrine-produtos-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Gerado dinamicamente via JS -->
+                    <p class="text-xs text-white/30 text-center col-span-2 py-2">Carregando vitrine...</p>
                 </div>
             </div>
 
+            <!-- SOLICITAR AGENDAMENTO REALTIME -->
             <div class="cloud-container rounded-2xl p-6 space-y-4">
                 <h3 class="text-sm font-bold font-automotive tracking-wide text-cyan-400"><i class="fa-solid fa-calendar-plus"></i> Solicitar Novo Agendamento</h3>
                 <form onsubmit="handleAgendamento(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div class="space-y-1">
                         <label class="text-white/60">Selecione o Serviço</label>
                         <select id="agenda-servico" class="client-input w-full p-3 rounded-xl text-white">
-                            <option value="Lavagem Detalhada">Lavagem Técnica Detalhada - R$ 150,00</option>
-                            <option value="Polimento Comercial">Polimento Comercial + Selante - R$ 450,00</option>
-                            <option value="Vitrificação 9H">Vitrificação Premium 9H - R$ 1.200,00</option>
+                            <!-- Gerado dinamicamente de acordo com os serviços ativos no banco -->
                         </select>
                     </div>
                     <div class="space-y-1">
@@ -189,6 +170,7 @@
             </div>
         </div>
 
+        <!-- SESSÃO LATERAL: HISTÓRICO -->
         <div class="space-y-6">
             <div class="cloud-container rounded-2xl p-6 space-y-4 flex flex-col h-full">
                 <h3 class="text-sm font-bold border-b border-white/5 pb-2"><i class="fa-solid fa-clock-rotate-left text-purple-400"></i> Histórico & Pedidos</h3>
@@ -198,6 +180,34 @@
             </div>
         </div>
     </main>
+
+    <!-- WIDGET DE CHAT FLUTUANTE (NOVO) -->
+    <div id="chat-widget" class="fixed bottom-5 right-5 z-50 flex flex-col items-end">
+        <!-- Janela do Chat -->
+        <div id="chat-box" class="hidden w-80 h-96 cloud-container rounded-2xl mb-3 flex flex-col overflow-hidden shadow-2xl border border-white/10 bg-[#0d091a]/95">
+            <div class="p-3 bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                    <span class="text-xs font-bold font-automotive tracking-wide text-cyan-400">Suporte Ceramink</span>
+                </div>
+                <button onclick="toggleChat()" class="text-white/50 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="chat-mensagens" class="flex-1 p-3 overflow-y-auto space-y-2 text-xs flex flex-col">
+                <!-- Mensagens injetadas via JS -->
+            </div>
+            <form onsubmit="handleEnviarMensagem(event)" class="p-2 border-t border-white/5 bg-black/40 flex gap-2">
+                <input type="text" id="chat-input-msg" required placeholder="Digite sua mensagem..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+                <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-black px-3 rounded-xl text-xs font-bold transition-all">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+        <!-- Botão Redondo -->
+        <button onclick="toggleChat()" class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-black shadow-xl hover:scale-105 transition-transform relative">
+            <i class="fa-solid fa-comments text-lg text-white"></i>
+            <span id="chat-badge-notif" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-[#060913]"></span>
+        </button>
+    </div>
 
     <footer class="w-full max-w-6xl mx-auto pt-4 border-t border-white/5 text-center text-[10px] text-white/30 font-automotive z-10">
         © 2026 CAA SYSTEM • ÁREA EXCLUSIVA DO CLIENTE
@@ -225,7 +235,6 @@
                 const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
                 
                 if (sessionError || !session) {
-                    console.log("Nenhuma sessão encontrada ou erro. Redirecionando...");
                     window.location.href = 'login.html';
                     return;
                 }
@@ -233,11 +242,6 @@
                 usuarioLogado = session.user;
                 let nomeExibicao = "";
 
-                if (usuarioLogado.user_metadata) {
-                    nomeExibicao = usuarioLogado.user_metadata.nome || usuarioLogado.user_metadata.full_name || usuarioLogado.user_metadata.display_name;
-                }
-
-                // Busca na tabela customizada 'usuarios'
                 const { data: perfil, error: dbError } = await _supabase
                     .from('usuarios')
                     .select('nome')
@@ -246,6 +250,8 @@
 
                 if (!dbError && perfil && perfil.nome) {
                     nomeExibicao = perfil.nome;
+                } else if (usuarioLogado.user_metadata) {
+                    nomeExibicao = usuarioLogado.user_metadata.nome || usuarioLogado.user_metadata.full_name;
                 }
 
                 if (!nomeExibicao) {
@@ -254,10 +260,12 @@
 
                 document.getElementById('cliente-nome-topo').innerText = nomeExibicao;
 
-                // Executa a carga de dados
+                // Carga inicial de dados Dinâmicos
                 buscarDadosVeiculoEStatus();
                 buscarHistoricoPedidos();
-                escutarMudancasEmTempoReal(); // Corrigida a chamada aqui!
+                carregarCatalogoProdutosEServicos();
+                carregarMensagensChat();
+                escutarMudancasEmTempoReal();
 
             } catch (err) {
                 console.error("Erro interno no painel do cliente:", err);
@@ -274,8 +282,6 @@
                     .order('criado_em', { ascending: false })
                     .limit(1)
                     .maybeSingle();
-
-                if (error) throw error;
 
                 if (data) {
                     document.getElementById('veiculo-titulo').innerText = data.veiculo;
@@ -344,24 +350,54 @@
             }
         }
 
-        // 4. ESCUTAR MUDANÇAS EM TEMPO REAL (REALTIME)
-        function escutarMudancasEmTempoReal() {
-            _supabase
-                .channel('mudancas-servicos')
-                .on('postgres_changes', { 
-                    event: 'UPDATE', 
-                    schema: 'public', 
-                    table: 'servicos', 
-                    filter: `id_usuario=eq.${usuarioLogado.id}` 
-                }, (payload) => {
-                    if (payload.new) {
-                        document.getElementById('veiculo-titulo').innerText = payload.new.veiculo;
-                        atualizarTimelineVisual(payload.new.fase_status);
-                        enviarNotificacaoFase(payload.new.fase_status, payload.new.veiculo);
-                        buscarHistoricoPedidos(); 
+        // 4. CARREGAR CATÁLOGO DE PRODUTOS E SERVIÇOS DO SUPABASE (REALTIME)
+        async function carregarCatalogoProdutosEServicos() {
+            try {
+                const { data, error } = await _supabase
+                    .from('servicos_produtos')
+                    .select('*');
+
+                if (error) throw error;
+
+                const containerProdutos = document.getElementById('vitrine-produtos-container');
+                const selectServicos = document.getElementById('agenda-servico');
+
+                containerProdutos.innerHTML = '';
+                selectServicos.innerHTML = '';
+
+                let totalProdutos = 0;
+
+                data.forEach(item => {
+                    if (item.tipo === 'Produto') {
+                        totalProdutos++;
+                        const card = `
+                            <div class="bg-black/30 border border-white/5 p-4 rounded-xl flex flex-col justify-between gap-3">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-white">${item.nome}</h4>
+                                        <p class="text-[11px] text-white/40 mt-1">Disponível para entrega imediata na estética.</p>
+                                    </div>
+                                    <span class="text-xs font-automotive text-cyan-400 font-bold">R$ ${parseFloat(item.valor).toFixed(2).replace('.', ',')}</span>
+                                </div>
+                                <button onclick="comprarProduto('${item.nome}', ${item.valor})" class="w-full bg-white/5 hover:bg-purple-500 hover:text-black py-2 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all">
+                                    Adicionar ao Carro
+                                </button>
+                            </div>
+                        `;
+                        containerProdutos.insertAdjacentHTML('beforeend', card);
+                    } else if (item.tipo === 'Serviço') {
+                        const opt = `<option value="${item.nome}"> ${item.nome} - R$ ${parseFloat(item.valor).toFixed(2).replace('.', ',')} </option>`;
+                        selectServicos.insertAdjacentHTML('beforeend', opt);
                     }
-                })
-                .subscribe();
+                });
+
+                if(totalProdutos === 0) {
+                    containerProdutos.innerHTML = '<p class="text-xs text-white/30 text-center col-span-2 py-2">Nenhum produto em estoque.</p>';
+                }
+
+            } catch (err) {
+                console.error("Erro ao montar vitrine:", err);
+            }
         }
 
         // 5. CARREGAR HISTÓRICO E PEDIDOS INTEGRADOS
@@ -425,23 +461,22 @@
             const dataInput = document.getElementById('agenda-data').value;
             const hora = document.getElementById('agenda-hora').value;
 
-            let valor = 150.00;
-            if (servico.includes("Polimento")) valor = 450.00;
-            if (servico.includes("Vitrificação")) valor = 1200.00;
-
             btn.disabled = true;
 
             try {
+                // Descobre valor dinâmico consultando o select ou injeta um padrão seguro
+                const { data: itemServ } = await _supabase.from('servicos_produtos').select('valor').eq('nome', servico).maybeSingle();
+                const valorFinal = itemServ ? itemServ.valor : 150.00;
+
                 const { error } = await _supabase
                     .from('historico_pedidos') 
                     .insert([{
                         id_usuario: usuarioLogado.id,
                         titulo: servico,
-                        valor: valor,
+                        valor: valorFinal,
                         descricao: `Carro: ${veiculo} | Data: ${dataInput.split('-').reverse().join('/')} às ${hora}h`,
                         status: 'Aguardando Confirmação',
-                        tipo_icone: '🗓️',
-                        criado_em: new Date()
+                        tipo_icone: '🗓️'
                     }]);
 
                 if (error) throw error;
@@ -468,18 +503,121 @@
                         valor: preco,
                         descricao: 'Adicionado à sua conta de entrega / Ordem de Serviço.',
                         status: 'Separando no estoque',
-                        tipo_icone: '📦',
-                        criado_em: new Date()
+                        tipo_icone: '📦'
                     }]);
 
                 if (error) throw error;
 
-                alert(`Sucesso! O produto "${nome}" foi reservado e anexado à sua conta no painel administrativo.`);
+                alert(`Sucesso! O produto "${nome}" foi reservado e anexado à sua conta.`);
                 buscarHistoricoPedidos();
 
             } catch (err) {
                 alert("Erro ao processar reserva: " + err.message);
             }
+        }
+
+        // ==========================================
+        //  SISTEMA DE CHAT INTEGRADO EM TEMPO REAL
+        // ==========================================
+        function toggleChat() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.classList.toggle('hidden');
+            document.getElementById('chat-badge-notif').classList.add('hidden');
+            scrollarChatAbaixo();
+        }
+
+        async function carregarMensagensChat() {
+            if(!usuarioLogado) return;
+            try {
+                const { data, error } = await _supabase
+                    .from('mensagens_chat')
+                    .select('*')
+                    .eq('usuario_id', usuarioLogado.id)
+                    .order('criado_em', { ascending: true });
+
+                if (error) throw error;
+
+                const container = document.getElementById('chat-mensagens');
+                container.innerHTML = '';
+
+                data.forEach(msg => {
+                    const deAdmin = msg.direcao === 'admin_para_usuario';
+                    const msgHtml = `
+                        <div class="max-w-[85%] rounded-xl p-2.5 mb-1 ${deAdmin ? 'bg-white/10 self-start text-white border border-white/5' : 'bg-cyan-500 text-black font-medium self-end'}">
+                            <p class="leading-relaxed break-words">${msg.texto}</p>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', msgHtml);
+                });
+                scrollarChatAbaixo();
+            } catch(e) {
+                console.error("Erro ao puxar chat:", e);
+            }
+        }
+
+        async function handleEnviarMensagem(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input-msg');
+            const texto = input.value.trim();
+            if(!texto || !usuarioLogado) return;
+
+            try {
+                const { error } = await _supabase
+                    .from('mensagens_chat')
+                    .insert([{
+                        usuario_id: usuarioLogado.id,
+                        texto: texto,
+                        direcao: 'usuario_para_admin'
+                    }]);
+
+                if (error) throw error;
+                input.value = '';
+                carregarMensagensChat();
+            } catch(err) {
+                console.error("Erro ao enviar mensagem:", err);
+            }
+        }
+
+        function scrollarChatAbaixo() {
+            const container = document.getElementById('chat-mensagens');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // 8. GLOBAL REALTIME CHANNELS (OUVINTE SUPABASE MULTI-TABLES)
+        function escutarMudancasEmTempoReal() {
+            _supabase
+                .channel('canal-cliente-global')
+                // Escuta atualizações de andamento no veículo
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'servicos' }, (payload) => {
+                    if (payload.new && payload.new.id_usuario === usuarioLogado.id) {
+                        document.getElementById('veiculo-titulo').innerText = payload.new.veiculo;
+                        atualizarTimelineVisual(payload.new.fase_status);
+                        enviarNotificacaoFase(payload.new.fase_status, payload.new.veiculo);
+                    }
+                })
+                // Escuta novos pedidos ou mudanças de status de faturamento
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'historico_pedidos' }, (payload) => {
+                    if (payload.new && payload.new.id_usuario === usuarioLogado.id) {
+                        buscarHistoricoPedidos();
+                    }
+                })
+                // Escuta alterações na vitrine e tabela de preços
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'servicos_produtos' }, () => {
+                    carregarCatalogoProdutosEServicos();
+                })
+                // Escuta novas mensagens enviadas pelo admin
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens_chat' }, (payload) => {
+                    if (payload.new && payload.new.usuario_id === usuarioLogado.id) {
+                        carregarMensagensChat();
+                        if(payload.new.direcao === 'admin_para_usuario') {
+                            const chatBox = document.getElementById('chat-box');
+                            if(chatBox.classList.contains('hidden')) {
+                                document.getElementById('chat-badge-notif').classList.remove('hidden');
+                            }
+                        }
+                    }
+                })
+                .subscribe();
         }
 
         // NOTIFICAÇÕES NATIVAS DO NAVEGADOR
@@ -490,7 +628,7 @@
             }
             Notification.requestPermission().then(permission => {
                 if (permission === "granted") {
-                    document.getElementById('btn-notificacao').innerHTML = '<i class="fa-solid fa-bell-ring text-emerald-400"></i> Avisos Ativos';
+                    document.getElementById('btn-notificacao').innerHTML = '<i class="fa-solid fa-bell text-emerald-400"></i> Avisos Ativos';
                     document.getElementById('btn-notificacao').classList.replace('text-purple-300', 'text-emerald-400');
                     new Notification("Ceramink Estética", {
                         body: "Excelente! Você receberá alertas em tempo real a cada mudança no seu veículo.",
@@ -503,7 +641,7 @@
         function enviarNotificacaoFase(fase, modeloCarro) {
             if (Notification.permission === "granted") {
                 const config = fasesConfig[fase] || fasesConfig[1];
-                new Notification(`Ceramink: Status Updated!`, {
+                new Notification(`Ceramink: Status Atualizado!`, {
                     body: `${modeloCarro || 'Seu veículo'} mudou para: ${config.badge}`,
                     icon: "logo.jpeg"
                 });
@@ -527,7 +665,7 @@
             document.getElementById('agenda-data').setAttribute('min', new Date().toISOString().split('T')[0]);
 
             if (Notification.permission === "granted") {
-                document.getElementById('btn-notificacao').innerHTML = '<i class="fa-solid fa-bell-ring text-emerald-400"></i> Avisos Ativos';
+                document.getElementById('btn-notificacao').innerHTML = '<i class="fa-solid fa-bell text-emerald-400"></i> Avisos Ativos';
                 document.getElementById('btn-notificacao').classList.replace('text-purple-300', 'text-emerald-400');
             }
         });
