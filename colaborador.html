@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2 family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         .font-automotive { font-family: 'Orbitron', sans-serif; }
@@ -78,7 +78,7 @@
         </div>
         <div class="flex items-center gap-4">
             <span class="text-[10px] font-automotive bg-purple-500/10 border border-purple-500/20 px-3 py-1.5 rounded-xl text-purple-400 tracking-wider">SUA COMISSÃO: 30%</span>
-            <button onclick="window.location.href='index.html'" class="text-white/40 hover:text-red-400 text-xs transition-colors" title="Desconectar">
+            <button onclick="desconectar()" class="text-white/40 hover:text-red-400 text-xs transition-colors" title="Desconectar">
                 <i class="fa-solid fa-power-off text-lg"></i>
             </button>
         </div>
@@ -185,17 +185,23 @@
     </div>
 
     <script>
-        // CONFIGURAÇÕES SUPABASE
+        // CONFIGURAÇÕES DO SUPABASE
         const SUPABASE_URL = "https://fxetjbrwsjyjpsvlbrdf.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU";
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Identificador fixo do Colaborador logado nesta sessão
-        const COLABORADOR_ATUAL = "Rodrigo Silva";
+        // Captura o colaborador logado dinamicamente via localStorage
+        const COLABORADOR_ATUAL = localStorage.getItem('usuario_logado') || sessionStorage.getItem('usuario_logado');
         const taxaComissao = 0.30; 
 
-        // Estados Globais
+        // Redireciona para o login caso não encontre credenciais ativas do colaborador
+        if (!COLABORADOR_ATUAL) {
+            alert("Acesso negado. Por favor, realize o login novamente.");
+            window.location.href = 'index.html';
+        }
+
+        // Estados Globais de Cálculo
         let totalProduzido = 0;
         let totalComissao = 0;
         let totalServicos = 0;
@@ -208,7 +214,7 @@
             inscreverRealtime();
         });
 
-        // Monitor de digitação para calcular prévia da comissão
+        // Monitor do modal para exibição prévia da comissão
         document.getElementById('item-valor').addEventListener('input', function(e) {
             const valor = parseFloat(e.target.value) || 0;
             const preview = (valor * taxaComissao).toFixed(2);
@@ -223,8 +229,14 @@
             document.getElementById('form-lançamento').reset();
             document.getElementById('preview-comissao').innerText = "0.00";
         }
+        
+        function desconectar() {
+            localStorage.removeItem('usuario_logado');
+            sessionStorage.removeItem('usuario_logado');
+            window.location.href = 'index.html';
+        }
 
-        // BUSCAR DADOS INICIAIS DA TABELA DE VENDAS
+        // BUSCA E RENDERIZAÇÃO REAL DOS DADOS DO COLABORADOR
         async function carregarDadosIniciais() {
             try {
                 const { data, error } = await _supabase
@@ -245,7 +257,6 @@
                 const historicoContainer = document.getElementById('historico-lançamentos');
                 historicoContainer.innerHTML = '';
 
-                // Estrutura para agrupar gráfico dinamicamente por dia/semana
                 const ganhosAgrupados = { 'Dom-Ter': 0, 'Qua-Qui': 0, 'Sex-Sáb': 0, 'Hoje': 0 };
                 const hoje = new Date().toDateString();
 
@@ -260,12 +271,11 @@
                         totalComissao += comissaoItem;
                         totalServicos++;
 
-                        // Processamento lógico para popular o gráfico dinamicamente
                         const dataItem = new Date(item.criado_em);
                         if (dataItem.toDateString() === hoje) {
                             ganhosAgrupados['Hoje'] += comissaoItem;
                         } else {
-                            const diaSemana = dataItem.getDay(); // 0 = Domingo, 6 = Sábado
+                            const diaSemana = dataItem.getDay();
                             if (diaSemana >= 0 && diaSemana <= 2) ganhosAgrupados['Dom-Ter'] += comissaoItem;
                             else if (diaSemana >= 3 && diaSemana <= 4) ganhosAgrupados['Qua-Qui'] += comissaoItem;
                             else if (diaSemana >= 5 && diaSemana <= 6) ganhosAgrupados['Sex-Sáb'] += comissaoItem;
@@ -279,7 +289,6 @@
 
                 atualizarCardsTela();
                 
-                // Aplica os dados reais agregados no gráfico
                 colabChart.data.datasets[0].data = [
                     ganhosAgrupados['Dom-Ter'],
                     ganhosAgrupados['Qua-Qui'],
@@ -289,13 +298,13 @@
                 colabChart.update();
 
             } catch (err) {
-                console.error("Erro ao carregar dados do Supabase:", err);
+                console.error("Erro na comunicação com Supabase:", err);
                 document.getElementById('status-banco').className = "text-red-400 font-bold";
                 document.getElementById('status-banco').innerText = "● Erro de Conectividade";
             }
         }
 
-        // SALVAR LANÇAMENTO REAL NA TABELA DE VENDAS
+        // PERSISTÊNCIA DE NOVOS LANÇAMENTOS
         async function salvarLançamentoColaborador(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-enviar');
@@ -322,17 +331,16 @@
                     }]);
 
                 if (error) throw error;
-                
                 closeModalLançamento();
             } catch (err) {
-                alert("Falha ao salvar dados no Supabase: " + err.message);
+                alert("Erro ao salvar no banco: " + err.message);
             } finally {
                 btn.disabled = false;
                 btn.innerText = "Enviar e Atualizar Meu Saldo";
             }
         }
 
-        // ATUALIZAR STATUS NO BANCO VIA SELECT DO CARD
+        // MUDANÇA DE STATUS INTEGRADA EM TEMPO REAL
         async function atualizarStatusServico(id, novoStatus) {
             try {
                 const { error } = await _supabase
@@ -348,18 +356,18 @@
                     setTimeout(() => elemento.classList.remove('border-purple-500/50'), 1000);
                 }
             } catch (err) {
-                alert("Erro ao atualizar status no banco: " + err.message);
+                alert("Erro ao atualizar status: " + err.message);
                 carregarDadosIniciais(); 
             }
         }
 
-        // ESCUTA EM TEMPO REAL COMPLETA (COMPATÍVEL COM O PAINEL ADMIN)
+        // CANAL REALTIME COMPATÍVEL COM O PAINEL DE ADMINISTRAÇÃO
         function inscreverRealtime() {
             _supabase
-                .channel('vendas_colaborador')
+                .channel('vendas_operacao')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'vendas' }, payload => {
                     
-                    // Se um novo item for inserido para este colaborador
+                    // Escuta se houver inserções para o próprio operador
                     if (payload.eventType === 'INSERT' && payload.new.colaborador === COLABORADOR_ATUAL) {
                         document.getElementById('sem-lancamentos')?.remove();
                         
@@ -373,17 +381,15 @@
                         atualizarCardsTela();
                         renderizarItemLista(payload.new, true);
 
-                        // Incrementa o card de hoje no gráfico em tempo real
                         colabChart.data.datasets[0].data[3] += vComissao;
                         colabChart.update();
                     }
                     
-                    // Se o admin ou faturamento alterar o status remotamente
+                    // Escuta se o administrador alterou o status ou os valores de uma venda remotamente
                     if (payload.eventType === 'UPDATE' && payload.new.colaborador === COLABORADOR_ATUAL) {
                         const itemSelect = document.querySelector(`#item-${payload.new.id} select`);
                         if (itemSelect) {
                             itemSelect.value = payload.new.status || 'Concluído';
-                            
                             itemSelect.className = itemSelect.className.replace(/text-(emerald|yellow|red)-400/g, '').trim();
                             
                             const statusModificado = payload.new.status;
