@@ -3,31 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Ceramink</title>
+    <title>Ceramink - Painel Administrativo</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
         body {
-            background-color: #0b0f19;
-            color: #f3f4f6;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-        .cloud-container {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-            border: 1px border;
-            border-color: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-        }
-        .admin-select {
-            background-color: #111827;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Inter', sans-serif;
+            background-color: #030303;
             color: #ffffff;
         }
-        .admin-select option {
-            background-color: #111827;
-            color: #ffffff;
+
+        .sidebar-minimized {
+            width: 80px !important;
         }
+        .sidebar-minimized .hide-minimized {
+            display: none !important;
+        }
+        .sidebar-minimized .center-minimized {
+            justify-content: center !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -37,392 +44,518 @@
         }
         ::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
+            border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 212, 255, 0.4);
+            background: rgba(0, 212, 255, 0.3);
         }
     </style>
 </head>
-<body class="min-h-screen flex overflow-hidden">
+<body class="overflow-x-hidden">
 
-    <div id="sidebarBackdrop" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+    <!-- BACKDROP SIDEBAR MOBILE -->
+    <div id="sidebarBackdrop" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden"></div>
 
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-[#0d1321] border-r border-white/5 z-50 transform -translate-x-full lg:translate-x-0 lg:static lg:flex lg:flex-col transition-transform duration-300 ease-in-out flex flex-col justify-between p-4 shrink-0">
-        <div class="space-y-6">
-            <div class="flex items-center gap-3 px-2 py-3 border-b border-white/5">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-purple-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                    <i class="fa-solid fa-layer-group text-black text-xs font-bold"></i>
+    <div class="flex min-h-screen">
+        
+        <!-- SIDEBAR / DRAWER -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-neutral-950 border-r border-white/5 transition-all duration-300 transform -translate-x-full lg:translate-x-0 lg:static">
+            
+            <!-- Logo Brand -->
+            <div class="flex items-center justify-between h-20 px-6 border-b border-white/5">
+                <div class="flex items-center gap-3 center-minimized w-full">
+                    <div class="w-9 h-9 bg-cyan-500 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,0.3)]">
+                        <i class="fa-solid fa-bolt text-black font-black"></i>
+                    </div>
+                    <span class="font-bold tracking-wider text-sm font-mono hide-minimized uppercase bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">Ceramink</span>
                 </div>
-                <div>
-                    <h1 class="text-sm font-bold tracking-wider uppercase text-white">Ceramink</h1>
-                    <span class="text-[10px] text-cyan-400 font-mono tracking-widest">ADMIN PANEL</span>
-                </div>
+                <button onclick="toggleSidebar(false)" class="lg:hidden p-2 text-white/50 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
 
-            <nav class="space-y-1">
-                <button onclick="switchTab('dashboard', this)" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 transition-all">
-                    <i class="fa-solid fa-chart-pie text-base w-5 text-center"></i> Dashboard
+            <!-- Navegação de Abas -->
+            <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+                <button onclick="switchTab('dashboard', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 bg-cyan-500 text-black shadow-[0_4px_12px_rgba(0,212,255,0.15)] center-minimized">
+                    <i class="fa-solid fa-chart-pie text-sm"></i>
+                    <span class="hide-minimized">Dashboard Executivo</span>
                 </button>
-                <button onclick="switchTab('agenda', this)" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-medium text-white/60 hover:bg-white/5 hover:text-white transition-all">
-                    <i class="fa-solid fa-calendar-days text-base w-5 text-center"></i> Agenda & Pátio
+
+                <button onclick="switchTab('agenda', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 center-minimized">
+                    <i class="fa-solid fa-calendar-days text-sm"></i>
+                    <span class="hide-minimized">Agenda Integrada</span>
                 </button>
-                <button onclick="switchTab('clientes', this)" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-medium text-white/60 hover:bg-white/5 hover:text-white transition-all">
-                    <i class="fa-solid fa-users text-base w-5 text-center"></i> Clientes
+
+                <button onclick="switchTab('clientes', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 center-minimized">
+                    <i class="fa-solid fa-users text-sm"></i>
+                    <span class="hide-minimized">Clientes do App</span>
                 </button>
-                <button onclick="switchTab('colaboradores', this)" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-medium text-white/60 hover:bg-white/5 hover:text-white transition-all">
-                    <i class="fa-solid fa-user-tie text-base w-5 text-center"></i> Colaboradores
+
+                <button onclick="switchTab('colaboradores', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 center-minimized">
+                    <i class="fa-solid fa-user-tie text-sm"></i>
+                    <span class="hide-minimized">Colaboradores</span>
                 </button>
-                <button onclick="switchTab('catalogo', this)" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-medium text-white/60 hover:bg-white/5 hover:text-white transition-all">
-                    <i class="fa-solid fa-box-open text-base w-5 text-center"></i> Catálogo
+
+                <button onclick="switchTab('catalogo', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 center-minimized">
+                    <i class="fa-solid fa-box-open text-sm"></i>
+                    <span class="hide-minimized">Produtos & Serviços</span>
                 </button>
-                <button onclick="switchTab('chat', this)" class="tab-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-medium text-white/60 hover:bg-white/5 hover:text-white transition-all">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-comments text-base w-5 text-center"></i> Central de Chat
+
+                <button onclick="switchTab('chat', this)" class="tab-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-semibold tracking-wide text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 center-minimized">
+                    <div class="flex items-center gap-3.5">
+                        <i class="fa-solid fa-comments text-sm"></i>
+                        <span class="hide-minimized">Central de Atendimento</span>
                     </div>
-                    <span id="chat-badge" class="w-2 h-2 bg-green-400 rounded-full hidden animate-pulse"></span>
+                    <span id="chat-badge" class="w-2 h-2 bg-green-400 rounded-full hidden hide-minimized mr-1"></span>
                 </button>
             </nav>
-        </div>
 
-        <div class="pt-4 border-t border-white/5 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs font-bold text-white">AD</div>
-                <div>
-                    <p class="text-xs font-bold text-white">Administrador</p>
-                    <p class="text-[10px] text-white/40">Sessão Ativa</p>
-                </div>
+            <!-- Rodapé da Sidebar -->
+            <div class="p-4 border-t border-white/5">
+                <button onclick="window.location.href='index.html'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 transition-colors center-minimized">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                    <span class="hide-minimized">Sair do Painel</span>
+                </button>
             </div>
-            <button class="text-white/40 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-500/10"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
-        </div>
-    </aside>
+        </aside>
 
-    <main class="flex-1 flex flex-col overflow-hidden bg-[#070a13]">
-        
-        <header class="h-16 border-b border-white/5 bg-[#0d1321]/50 backdrop-blur-md px-6 flex items-center justify-between shrink-0">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-white/70 hover:text-white hover:bg-white/5 rounded-xl"><i class="fa-solid fa-bars text-lg"></i></button>
-                <h2 id="page-title" class="text-sm font-bold tracking-wide uppercase text-white/90">Painel Geral Executivo</h2>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="openVendaModal('venda')" class="bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-lg shadow-cyan-500/10 flex items-center gap-1.5"><i class="fa-solid fa-cart-plus"></i> Registrar Venda</button>
-                <button onclick="openVendaModal('catalogo')" class="bg-white/5 hover:bg-white/10 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all border border-white/5 flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Catálogo</button>
-            </div>
-        </header>
-
-        <div id="content-area" class="flex-1 overflow-y-auto p-6 space-y-6">
+        <!-- CONTEÚDO PRINCIPAL (MAIN CONTENT) -->
+        <div class="flex-1 flex flex-col min-w-0">
             
-            <section id="tab-dashboard" class="tab-content space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="cloud-container rounded-2xl p-5 flex items-center justify-between">
-                        <div class="space-y-1">
-                            <span class="text-[10px] text-white/40 font-bold uppercase tracking-wider">Faturamento Diário</span>
-                            <h3 id="realtime-faturamento-dia" class="text-xl font-bold text-cyan-400">R$ 0,00</h3>
+            <!-- TOPBAR HEADER -->
+            <header class="h-20 border-b border-white/5 bg-neutral-950/50 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="p-2 rounded-lg bg-white/5 border border-white/5 text-white/80 hover:text-white transition-colors">
+                        <i id="minimizeIcon" class="fa-solid fa-bars-staggered"></i>
+                    </button>
+                    <h1 class="text-sm font-bold tracking-wide text-white/90 hidden sm:block">Painel Administrativo Geral</h1>
+                </div>
+
+                <!-- Botões de Ações Rápidas -->
+                <div class="flex items-center gap-3">
+                    <button onclick="openVendaModal('venda')" class="bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-cyan-500 hover:text-black transition-all duration-200 cursor-pointer">
+                        <i class="fa-solid fa-cart-plus mr-1.5"></i> Registrar Venda
+                    </button>
+                    <button onclick="openVendaModal('catalogo')" class="bg-purple-500/10 border border-purple-500/20 text-purple-400 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-purple-500 hover:text-white transition-all duration-200 cursor-pointer">
+                        <i class="fa-solid fa-plus mr-1.5"></i> Novo Item Catálogo
+                    </button>
+                </div>
+            </header>
+
+            <!-- CONTAINER DE TELAS DINÂMICAS -->
+            <main class="flex-1 p-6 lg:p-8 overflow-y-auto max-w-[1600px] w-full mx-auto">
+                
+                <!-- 1. TELA: DASHBOARD -->
+                <div id="tab-dashboard" class="tab-content space-y-6">
+                    <!-- Cards de Métricas em Tempo Real -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-white/40 font-medium">Faturamento (Hoje)</p>
+                                <h3 id="realtime-faturamento-dia" class="text-xl font-bold mt-1 font-mono text-cyan-400">R$ 0,00</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-400 border border-cyan-500/10"><i class="fa-solid fa-wallet"></i></div>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400"><i class="fa-solid fa-wallet text-lg"></i></div>
+
+                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-white/40 font-medium">Atendimentos na Grade</p>
+                                <h3 id="realtime-servicos-dia" class="text-xl font-bold mt-1 text-white/90">0 Lançamentos</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-400 border border-purple-500/10"><i class="fa-solid fa-calendar-check"></i></div>
+                        </div>
+
+                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-white/40 font-medium">Clientes no Ecossistema</p>
+                                <h3 id="realtime-clientes-total" class="text-xl font-bold mt-1 text-white/90">0 Clientes</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 border border-amber-500/10"><i class="fa-solid fa-users"></i></div>
+                        </div>
+
+                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-white/40 font-medium">Status do Servidor</p>
+                                <h3 class="text-xs font-bold mt-1.5 text-emerald-400 flex items-center gap-1.5"><span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span> ONLINE (REALTIME)</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 border border-emerald-500/10"><i class="fa-solid fa-network-wired"></i></div>
+                        </div>
                     </div>
-                    <div class="cloud-container rounded-2xl p-5 flex items-center justify-between">
-                        <div class="space-y-1">
-                            <span class="text-[10px] text-white/40 font-bold uppercase tracking-wider">Atendimentos Ativos</span>
-                            <h3 id="realtime-servicos-dia" class="text-xl font-bold text-purple-400">0 Lançamentos</h3>
+
+                    <!-- Gráfico & Monitor de Pátio -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Painel Gráfico Executivo -->
+                        <div class="lg:col-span-2 bg-neutral-950 border border-white/5 rounded-2xl p-6 flex flex-col">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h2 class="text-sm font-bold text-white/90">Curva de Faturamento Líquido</h2>
+                                    <p class="text-[11px] text-white/40 mt-0.5">Visão automatizada baseada nas vendas salvas no banco</p>
+                                </div>
+                                <div class="flex gap-1.5 bg-white/5 p-1 rounded-lg border border-white/5">
+                                    <button onclick="changeChartPeriod(7)" class="text-[10px] px-2.5 py-1 rounded-md font-bold text-white/60 hover:text-white">7D</button>
+                                    <button onclick="changeChartPeriod(30)" class="text-[10px] px-2.5 py-1 rounded-md font-bold bg-cyan-500 text-black">30D</button>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-h-[260px] relative">
+                                <canvas id="dashboardChart"></canvas>
+                            </div>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400"><i class="fa-solid fa-car-rear text-lg"></i></div>
+
+                        <!-- Monitor Realtime de Carros no Pátio -->
+                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-6 flex flex-col">
+                            <div class="mb-4">
+                                <h2 class="text-sm font-bold text-white/90"><i class="fa-solid fa-spinner text-cyan-400 mr-1 animate-spin"></i> Linha de Atendimento</h2>
+                                <p class="text-[11px] text-white/40 mt-0.5">Estágio de cura e lavagem atualizados pelo pátio</p>
+                            </div>
+                            <div id="cards-atendimento-realtime" class="flex-1 overflow-y-auto space-y-3 max-h-[300px] pr-1">
+                                <!-- Preenchido dinamicamente por JS -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="cloud-container rounded-2xl p-5 flex items-center justify-between">
-                        <div class="space-y-1">
-                            <span class="text-[10px] text-white/40 font-bold uppercase tracking-wider">Base de Usuários</span>
-                            <h3 id="realtime-clientes-total" class="text-xl font-bold text-emerald-400">0 Clientes</h3>
+
+                    <!-- Painel Financeiro Detalhado -->
+                    <div class="bg-neutral-950 border border-white/5 rounded-2xl p-6">
+                        <h2 class="text-sm font-bold mb-4">Resumo Consolidado de Caixa</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                                <span class="text-[10px] uppercase font-bold text-white/40">Fechamento Hoje</span>
+                                <p id="fin-hoje" class="text-lg font-bold font-mono text-white/90 mt-1">R$ 0,00</p>
+                            </div>
+                            <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                                <span class="text-[10px] uppercase font-bold text-white/40">Últimos 7 dias</span>
+                                <p id="fin-semana" class="text-lg font-bold font-mono text-cyan-400 mt-1">R$ 0,00</p>
+                            </div>
+                            <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                                <span class="text-[10px] uppercase font-bold text-white/40">Projeção Mensal (30D)</span>
+                                <p id="fin-mes" class="text-lg font-bold font-mono text-purple-400 mt-1">R$ 0,00</p>
+                            </div>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-users text-lg"></i></div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 cloud-container rounded-2xl p-5 flex flex-col space-y-4">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Fluxo Líquido de Caixa</h3>
-                                <p class="text-[11px] text-white/40">Demonstrativo baseado em vendas inseridas no sistema</p>
-                            </div>
-                            <div class="flex bg-black/40 border border-white/5 rounded-lg p-0.5 text-[10px]">
-                                <button onclick="changeChartPeriod(7)" class="px-3 py-1.5 rounded-md text-white/50 hover:text-white font-medium">7D</button>
-                                <button onclick="changeChartPeriod(30)" class="px-3 py-1.5 rounded-md bg-white/5 text-cyan-400 font-bold border border-white/5">30D</button>
-                            </div>
+                <!-- 2. TELA: AGENDA INTEGRADA -->
+                <div id="tab-agenda" class="tab-content space-y-6 hidden">
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                        <!-- Formulário de Encaixe -->
+                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-6 h-fit">
+                            <h2 class="text-sm font-bold mb-4"><i class="fa-solid fa-calendar-plus text-cyan-400 mr-1"></i> Forçar Encaixe na Planilha</h2>
+                            <form onsubmit="adicionarDiretoNaPlanilha(e)" class="space-y-4">
+                                <div>
+                                    <label class="text-[11px] text-white/50 block mb-1.5">Nome do Cliente</label>
+                                    <input type="text" id="agenda-nome" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[11px] text-white/50 block mb-1.5">Veículo (Modelo/Placa)</label>
+                                        <input type="text" id="agenda-carro" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    </div>
+                                    <div>
+                                        <label class="text-[11px] text-white/50 block mb-1.5">Serviço Pretendido</label>
+                                        <input type="text" id="agenda-serv" required placeholder="Ex: Vitrificação" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[11px] text-white/50 block mb-1.5">Data</label>
+                                        <input type="date" id="agenda-data" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    </div>
+                                    <div>
+                                        <label class="text-[11px] text-white/50 block mb-1.5">Horário</label>
+                                        <input type="time" id="agenda-hora" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    </div>
+                                </div>
+                                <button type="submit" class="w-full bg-cyan-500 text-black py-3 rounded-xl font-bold text-xs hover:shadow-[0_0_20px_rgba(0,212,255,0.2)] transition-all cursor-pointer">Salvar Atendimento</button>
+                            </form>
                         </div>
-                        <div class="flex-1 min-h-[220px] relative">
-                            <canvas id="dashboardChart"></canvas>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 pt-4 border-t border-white/5 text-center">
-                            <div><p class="text-[10px] text-white/40">Hoje</p><p id="fin-hoje" class="text-xs font-bold text-white">R$ 0,00</p></div>
-                            <div><p class="text-[10px] text-white/40">Últimos 7d</p><p id="fin-semana" class="text-xs font-bold text-white">R$ 0,00</p></div>
-                            <div><p class="text-[10px] text-white/40">Últimos 30d</p><p id="fin-mes" class="text-xs font-bold text-cyan-400">R$ 0,00</p></div>
-                        </div>
-                    </div>
 
-                    <div class="cloud-container rounded-2xl p-5 flex flex-col space-y-4">
-                        <div>
-                            <h3 class="text-xs font-bold text-white uppercase tracking-wider">Monitor do Pátio (Realtime)</h3>
-                            <p class="text-[11px] text-white/40">Acompanhamento de processos de aplicação ativos</p>
-                        </div>
-                        <div id="cards-atendimento-realtime" class="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[310px]">
+                        <!-- Lista Geral da Grade / Planilha -->
+                        <div class="xl:col-span-2 bg-neutral-950 border border-white/5 rounded-2xl p-6">
+                            <h2 class="text-sm font-bold mb-4">Histórico Completo da Grade</h2>
+                            <div class="overflow-x-auto w-full">
+                                <table class="w-full text-left border-collapse min-w-[500px]">
+                                    <thead>
+                                        <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/40">
+                                            <th class="p-3">Data/Hora</th>
+                                            <th class="p-3">Cliente</th>
+                                            <th class="p-3">Veículo</th>
+                                            <th class="p-3">Serviço</th>
+                                            <th class="p-3 text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="planilha-agenda-corpo" class="text-xs divide-y divide-white/5">
+                                        <!-- Injetado dinamicamente -->
+                                    </tbody>
+                                </table>
                             </div>
+                        </div>
                     </div>
                 </div>
-            </section>
 
-            <section id="tab-agenda" class="tab-content hidden space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="cloud-container rounded-2xl p-5 h-fit space-y-4">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-wider">Encaixar Atendimento</h3>
-                        <form id="form-agenda" onsubmit="adicionarDiretoNaPlanilha(e)" class="space-y-3">
+                <!-- 3. TELA: CLIENTES DO APP -->
+                <div id="tab-clientes" class="tab-content space-y-6 hidden">
+                    <div class="bg-neutral-950 border border-white/5 rounded-2xl p-6">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
                             <div>
-                                <label class="text-[10px] text-white/50 block mb-1">Nome do Cliente</label>
-                                <input id="agenda-nome" type="text" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
+                                <h2 class="text-sm font-bold">Base de Usuários Cadastrados</h2>
+                                <p class="text-xs text-white/40 mt-0.5">Clientes que possuem conta criada e ativa no aplicativo da Ceramink</p>
                             </div>
-                            <div>
-                                <label class="text-[10px] text-white/50 block mb-1">Veículo (Modelo/Placa)</label>
-                                <input id="agenda-carro" type="text" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
+                            <div class="relative max-w-xs w-full">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 text-xs"></i>
+                                <input type="text" oninput="searchClientes(this.value)" placeholder="Buscar cliente..." class="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs outline-none focus:border-cyan-400 text-white">
                             </div>
-                            <div>
-                                <label class="text-[10px] text-white/50 block mb-1">Serviço Solicitado</label>
-                                <input id="agenda-serv" type="text" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="text-[10px] text-white/50 block mb-1">Data</label>
-                                    <input id="agenda-data" type="date" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-white/50 block mb-1">Horário</label>
-                                    <input id="agenda-hora" type="time" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                                </div>
-                            </div>
-                            <button type="submit" class="w-full bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs py-2.5 rounded-xl transition-all">Lançar no Pátio</button>
-                        </form>
-                    </div>
-
-                    <div class="lg:col-span-2 cloud-container rounded-2xl p-5 flex flex-col">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Lista Completa de Agendamentos</h3>
+                        </div>
                         <div class="overflow-x-auto w-full">
-                            <table class="w-full text-left border-collapse text-xs">
+                            <table class="w-full text-left border-collapse min-w-[600px]">
                                 <thead>
-                                    <tr class="border-b border-white/10 text-white/40 uppercase tracking-wider text-[10px]">
-                                        <th class="p-3">Data/Hora</th>
-                                        <th class="p-3">Cliente</th>
-                                        <th class="p-3">Veículo</th>
-                                        <th class="p-3">Serviço</th>
-                                        <th class="p-3 text-center">Status</th>
+                                    <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/40">
+                                        <th class="p-4">Nome Oficial</th>
+                                        <th class="p-4">E-mail Cadastrado</th>
+                                        <th class="p-4">WhatsApp / Data Cad.</th>
+                                        <th class="p-4 text-right">Ação</th>
                                     </tr>
                                 </thead>
-                                <tbody id="planilha-agenda-corpo" class="divide-y divide-white/5">
-                                    </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="tab-clientes" class="tab-content hidden space-y-4">
-                <div class="flex justify-between items-center gap-4 bg-[#0d1321]/40 border border-white/5 p-3 rounded-2xl">
-                    <div class="relative flex-1 max-w-md">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 text-xs"></i>
-                        <input type="text" oninput="searchClientes(this.value)" placeholder="Filtrar base de clientes local..." class="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs text-white outline-none focus:border-cyan-500">
-                    </div>
-                </div>
-                <div class="cloud-container rounded-2xl overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-xs">
-                            <thead>
-                                <tr class="bg-white/5 border-b border-white/10 text-white/40 uppercase tracking-wider text-[10px]">
-                                    <th class="p-4">Cliente</th>
-                                    <th class="p-4">Email</th>
-                                    <th class="p-4">WhatsApp / Cadastro</th>
-                                    <th class="p-4 text-right">Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody id="clientes-table-body">
+                                <tbody id="clientes-table-body" class="text-xs">
+                                    <!-- Injetado dinamicamente -->
                                 </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <section id="tab-colaboradores" class="tab-content hidden space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="cloud-container rounded-2xl p-5 h-fit space-y-4">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-wider">Cadastrar Novo Colaborador</h3>
-                        <form id="form-colaborador" onsubmit="handleCadastrarColaborador(event)" class="space-y-3">
-                            <div>
-                                <label class="text-[10px] text-white/50 block mb-1">Nome Completo</label>
-                                <input id="colab-nome" type="text" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="text-[10px] text-white/50 block mb-1">Email (Login)</label>
-                                    <input id="colab-email" type="email" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-white/50 block mb-1">Senha Provisória</label>
-                                    <input id="colab-senha" type="password" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="text-[10px] text-white/50 block mb-1">Documento (CPF/CNPJ)</label>
-                                    <input id="colab-documento" type="text" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-white/50 block mb-1">WhatsApp</label>
-                                    <input id="colab-whatsapp" type="text" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-white/50 block mb-1">Endereço Residencial</label>
-                                <input id="colab-endereco" type="text" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-white/50 block mb-1">Regra de Remuneração / Salário</label>
-                                <input id="colab-remuneracao" type="text" required placeholder="Ex: R$ 3.000 + 10% comissão" class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                            </div>
-                            <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs py-2.5 rounded-xl transition-all">Salvar Profissional</button>
-                        </form>
-                    </div>
-
-                    <div class="lg:col-span-2 cloud-container rounded-2xl p-5">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-4">Equipe Registrada</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse text-xs">
-                                <thead>
-                                    <tr class="border-b border-white/10 text-white/40 uppercase tracking-wider text-[10px]">
-                                        <th class="p-3">Nome</th>
-                                        <th class="p-3">Acesso/Email</th>
-                                        <th class="p-3">WhatsApp</th>
-                                        <th class="p-3">Remuneração</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="colaboradores-table-body" class="divide-y divide-white/5">
-                                    </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-            </section>
 
-            <section id="tab-catalogo" class="tab-content hidden space-y-4">
-                <div id="catalogo-items-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    </div>
-            </section>
-
-            <section id="tab-chat" class="tab-content hidden grid grid-cols-1 lg:grid-cols-4 gap-6 h-[500px]">
-                <div class="cloud-container rounded-2xl p-4 flex flex-col space-y-3 h-full overflow-hidden">
-                    <h3 class="text-xs font-bold text-white uppercase tracking-wider border-b border-white/5 pb-2">Contatos</h3>
-                    <div id="chat-usuarios-lista" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                <!-- 4. TELA: COLABORADORES -->
+                <div id="tab-colaboradores" class="tab-content space-y-6 hidden">
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                        <!-- Formulário de Cadastro -->
+                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-6 h-fit">
+                            <h2 class="text-sm font-bold mb-4"><i class="fa-solid fa-user-plus text-purple-400 mr-1"></i> Cadastrar Credencial Profissional</h2>
+                            <form onsubmit="handleCadastrarColaborador(event)" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[11px] text-white/50 block mb-1.5">Nome Completo</label>
+                                        <input type="text" id="colab-nome" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    </div>
+                                    <div>
+                                        <label class="text-[11px] text-white/50 block mb-1.5">E-mail Corporativo</label>
+                                        <input type="email" id="colab-email" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[11px] text-white/50 block mb-1.5">Documento (CPF)</label>
+                                        <input type="text" id="colab-documento" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    </div>
+                                    <div>
+                                        <label class="text-[11px] text-white/50 block mb-1.5">WhatsApp Contato</label>
+                                        <input type="text" id="colab-whatsapp" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] text-white/50 block mb-1.5">Endereço de Residência</label>
+                                    <input type="text" id="colab-endereco" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[11px] text-white/50 block mb-1.5">Modelo Contratual / Remuneração</label>
+                                        <input type="text" id="colab-remuneracao" required placeholder="Ex: R$ 3.000 + Comissão" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    </div>
+                                    <div>
+                                        <label class="text-[11px] text-white/50 block mb-1.5">Senha Provisória de Acesso</label>
+                                        <input type="password" id="colab-senha" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    </div>
+                                </div>
+                                <button type="submit" class="w-full bg-purple-500 text-white py-3 rounded-xl font-bold text-xs hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all cursor-pointer">Validar Credencial</button>
+                            </form>
                         </div>
-                </div>
 
-                <div class="lg:col-span-3 cloud-container rounded-2xl flex flex-col h-full overflow-hidden bg-black/20">
-                    <div id="chat-mensagens-container" class="flex-1 p-4 overflow-y-auto space-y-3 flex flex-col">
-                        <div class="text-center p-4 text-white/20 my-auto">Selecione um cliente ao lado para carregar o histórico em tempo real.</div>
+                        <!-- Lista de Funcionários Ativos -->
+                        <div class="xl:col-span-2 bg-neutral-950 border border-white/5 rounded-2xl p-6">
+                            <h2 class="text-sm font-bold mb-4">Colaboradores Vinculados</h2>
+                            <div class="overflow-x-auto w-full">
+                                <table class="w-full text-left border-collapse min-w-[500px]">
+                                    <thead>
+                                        <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/40">
+                                            <th class="p-3">Nome</th>
+                                            <th class="p-3">E-mail</th>
+                                            <th class="p-3">WhatsApp</th>
+                                            <th class="p-3">Remuneração</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="colaboradores-table-body" class="text-xs divide-y divide-white/5">
+                                        <!-- Injetado dinamicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <form id="form-enviar-chat" onsubmit="enviarMensagemAdmin(event)" class="p-3 border-t border-white/5 bg-[#0d1321]/80 flex gap-2 items-center shrink-0">
-                        <input id="chat-input-mensagem" type="text" placeholder="Digite uma resposta rápida..." class="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                        <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-black w-10 h-10 rounded-xl transition-all flex items-center justify-center shrink-0 shadow-lg shadow-cyan-500/10"><i class="fa-solid fa-paper-plane text-xs"></i></button>
-                    </form>
                 </div>
-            </section>
 
+                <!-- 5. TELA: PRODUTOS & SERVIÇOS -->
+                <div id="tab-catalogo" class="tab-content space-y-6 hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h2 class="text-sm font-bold">Catálogo Geral da Loja</h2>
+                            <p class="text-xs text-white/40 mt-0.5">Vitrine em exposição na home e pátio para escolha direta do usuário</p>
+                        </div>
+                    </div>
+                    <div id="catalogo-items-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Injetado dinamicamente -->
+                    </div>
+                </div>
+
+                <!-- 6. TELA: CENTRAL DE CHAT -->
+                <div id="tab-chat" class="tab-content space-y-6 hidden">
+                    <div class="bg-neutral-950 border border-white/5 rounded-2xl h-[calc(100vh-14rem)] min-h-[450px] overflow-hidden grid grid-cols-1 md:grid-cols-3">
+                        
+                        <!-- Lista de Usuários Lateral -->
+                        <div class="border-r border-white/5 flex flex-col overflow-y-auto p-4 space-y-2 bg-black/20">
+                            <h3 class="text-xs font-bold text-white/40 px-2 uppercase tracking-wider mb-2">Mensagens Ativas</h3>
+                            <div id="chat-usuarios-lista" class="space-y-1.5 flex-1 overflow-y-auto">
+                                <!-- Injetado dinamicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Tela Interna do Chat Selecionado -->
+                        <div class="md:col-span-2 flex flex-col bg-neutral-950/40 relative">
+                            <!-- Container de Balões de Mensagens -->
+                            <div id="chat-mensagens-container" class="flex-1 overflow-y-auto p-6 space-y-4 max-h-[calc(100vh-23rem)] min-h-[300px]">
+                                <div class="h-full flex items-center justify-center text-xs text-white/30">Selecione uma conversa ao lado para interagir</div>
+                            </div>
+
+                            <!-- Barra Inferior de Input de Envio -->
+                            <div class="p-4 border-t border-white/5 bg-neutral-950">
+                                <form onsubmit="enviarMensagemAdmin(event)" class="flex gap-2">
+                                    <input type="text" id="chat-input-mensagem" placeholder="Digite uma mensagem oficial de resposta..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    <button type="submit" class="w-12 h-12 bg-cyan-500 rounded-xl text-black font-bold flex items-center justify-center hover:shadow-[0_0_15px_rgba(0,212,255,0.2)] transition-all cursor-pointer">
+                                        <i class="fa-solid fa-paper-plane text-sm"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </main>
         </div>
-    </main>
+    </div>
 
-    <div id="vendaModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="cloud-container rounded-2xl w-full max-w-md p-6 space-y-4 m-4 relative animate-in fade-in zoom-in duration-200">
-            <button onclick="closeVendaModal()" class="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-base"></i></button>
-            <h3 id="vendaModalTitulo" class="text-sm font-bold text-white flex items-center gap-2">Lançamento Geral</h3>
-            <form id="form-venda" onsubmit="handleSalvarVenda(event)" class="space-y-3">
+    <!-- MODAL DINÂMICO UNIFICADO: REGISTRAR VENDA / LANÇAR CATÁLOGO -->
+    <div id="vendaModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-neutral-950 border border-white/10 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl animate-fade-in">
+            <div class="p-5 border-b border-white/5 flex justify-between items-center bg-black/20">
+                <h3 id="modal-titulo" class="text-xs font-bold uppercase tracking-wider text-white/90">Lançamento</h3>
+                <button onclick="closeVendaModal()" class="w-7 h-7 bg-white/5 border border-white/5 rounded-lg flex items-center justify-center text-white/50 hover:text-white transition-colors cursor-pointer">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            <form onsubmit="handleSalvarVenda(event)" class="p-5 space-y-4">
                 <input type="hidden" id="venda-modo" value="venda">
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[11px] text-white/50 block mb-1.5">Segmentação</label>
+                        <select id="venda-tipo" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white cursor-pointer">
+                            <option value="Serviço" class="bg-neutral-900 text-white">Serviço</option>
+                            <option value="Produto" class="bg-neutral-900 text-white">Produto</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-white/50 block mb-1.5">Valor Estipulado (R$)</label>
+                        <input type="number" step="0.01" id="venda-valor" required placeholder="0.00" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white font-mono">
+                    </div>
+                </div>
+
                 <div>
-                    <label class="text-[10px] text-white/50 block mb-1">Tipo de Lançamento</label>
-                    <select id="venda-tipo" class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500 admin-select">
-                        <option value="Serviço">Serviço Automotivo</option>
-                        <option value="Produto">Produto / Insumo</option>
-                    </select>
+                    <label class="text-[11px] text-white/50 block mb-1.5">Nome do Item / Serviço Aplicado</label>
+                    <input type="text" id="venda-nome" required placeholder="Ex: Vitrificação de Pintura" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
                 </div>
-                <div>
-                    <label class="text-[10px] text-white/50 block mb-1">Nome do Item / Descrição</label>
-                    <input id="venda-nome" type="text" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
+
+                <div id="container-cliente">
+                    <label class="text-[11px] text-white/50 block mb-1.5">Nome ou CPF do Comprador/Cliente</label>
+                    <input type="text" id="venda-cliente" placeholder="Identificação do cliente" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
                 </div>
-                <div id="container-venda-cliente">
-                    <label class="text-[10px] text-white/50 block mb-1">Nome do Cliente Atendido</label>
-                    <input id="venda-cliente" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
+
+                <div class="pt-2 flex justify-end gap-2.5">
+                    <button type="button" onclick="closeVendaModal()" class="px-4 py-2.5 rounded-xl border border-white/10 text-white/60 hover:text-white text-xs font-semibold cursor-pointer">Cancelar</button>
+                    <button type="submit" id="btn-submit-modal" class="px-5 py-2.5 rounded-xl bg-cyan-500 text-black text-xs font-bold hover:shadow-[0_0_15px_rgba(0,212,255,0.2)] transition-all cursor-pointer">Salvar Entrada</button>
                 </div>
-                <div>
-                    <label class="text-[10px] text-white/50 block mb-1">Preço / Valor Bruto (R$)</label>
-                    <input id="venda-valor" type="number" step="0.01" required class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none focus:border-cyan-500">
-                </div>
-                <button id="btn-venda-submit" type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-black font-bold text-xs py-3 rounded-xl shadow-lg transition-all mt-2">Salvar Registro</button>
             </form>
         </div>
     </div>
 
+    <!-- ==========================================
+         LÓGICA DE PROGRAMAÇÃO INTEGRADA E CORRIGIDA
+         ========================================== -->
     <script>
-        // Variáveis de controle de estado em memória local
-        let listaClientes = [];
-        let listaColaboradores = [];
-        let listaAgenda = [];
-        let listaCatalogo = [];
-        let listaVendas = [];
-        let usuarioChatAtivo = null;
+        // Configurações do Supabase (Insira as credenciais reais do seu projeto aqui)
+        const SUPABASE_URL = "SUA_SUPABASE_URL"; 
+        const SUPABASE_KEY = "SUA_SUPABASE_ANON_KEY";
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Função para alternar entre abas laterais e atualizar títulos da página
+        // ESTADO GLOBAL DA APLICAÇÃO (Sem duplicações ou conflitos de redeclaração)
+        var listaClientes = [];
+        var listaColaboradores = [];
+        var listaAgenda = [];
+        var listaCatalogo = [];
+        var listaVendas = [];
+        var usuarioChatAtivo = null;
+        var chartInstance = null;
+
+        // Controle e Navegação entre Abas (Tabs System)
         function switchTab(tabId, buttonElement) {
             document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
-            const selectedTab = document.getElementById(`tab-${tabId}`);
-            if (selectedTab) selectedTab.classList.remove('hidden');
+            const activeTab = document.getElementById(`tab-${tabId}`);
+            if (activeTab) activeTab.classList.remove('hidden');
 
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.className = "tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-medium text-white/60 hover:bg-white/5 hover:text-white transition-all";
+                btn.classList.remove('bg-cyan-500', 'text-black', 'shadow-[0_4px_12px_rgba(0,212,255,0.15)]');
+                btn.classList.add('text-white/60', 'hover:text-white', 'hover:bg-white/5');
             });
+
             if (buttonElement) {
-                buttonElement.className = "tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 transition-all";
+                buttonElement.classList.remove('text-white/60', 'hover:text-white', 'hover:bg-white/5');
+                buttonElement.classList.add('bg-cyan-500', 'text-black', 'shadow-[0_4px_12px_rgba(0,212,255,0.15)]');
             }
 
-            const pageTitle = document.getElementById('page-title');
-            if (pageTitle) {
-                const names = { dashboard: "Painel Geral Executivo", agenda: "Agenda & Pátio Integrado", clientes: "Gerenciamento de Clientes", colaboradores: "Equipe e Colaboradores", catalogo: "Catálogo de Serviços e Vendas", chat: "Central de Comunicação Direta" };
-                pageTitle.innerText = names[tabId] || "Painel";
+            if (tabId === 'chat' && buttonElement) {
+                const chatGeneralBadge = document.getElementById('chat-badge');
+                if (chatGeneralBadge) chatGeneralBadge.classList.add('hidden');
             }
-
-            if (tabId === 'chat' && !usuarioChatAtivo) {
-                const generalBadge = document.getElementById('chat-badge');
-                if (generalBadge) generalBadge.classList.add('hidden');
-            }
-
-            // Fecha sidebar em telas pequenas após o clique
-            if (window.innerWidth < 1024) toggleSidebar();
+            toggleSidebar(false);
         }
 
-        // Controle manual de abertura/fechamento da Sidebar Responsiva
-        function toggleSidebar() {
+        // Controle Menu Responsivo (Hambúrguer / Drawer)
+        function toggleSidebar(forceState = null) {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
+            const icon = document.getElementById('minimizeIcon');
+            
             if (!sidebar) return;
-            const isHidden = sidebar.classList.contains('-translate-x-full');
-            if (isHidden) {
-                sidebar.classList.remove('-translate-x-full');
-                if (backdrop) backdrop.classList.remove('hidden');
+
+            if (window.innerWidth < 1024) {
+                const isOpen = forceState !== null ? forceState : sidebar.classList.contains('-translate-x-full');
+                if (isOpen) {
+                    sidebar.classList.remove('-translate-x-full');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    if (backdrop) backdrop.classList.add('hidden');
+                }
             } else {
-                sidebar.classList.add('-translate-x-full');
-                if (backdrop) backdrop.classList.add('hidden');
+                sidebar.classList.toggle('sidebar-minimized');
+                if (icon) {
+                    icon.className = sidebar.classList.contains('sidebar-minimized') ? "fa-solid fa-bars" : "fa-solid fa-bars-staggered";
+                }
             }
         }
 
-        // Abertura e configuração de campos dinâmicos do Modal de Vendas/Catálogo
-        function openVendaModal(modo) {
+        // Funções do Modal Dinâmico
+        function openVendaModal(modo = 'venda') {
             const modal = document.getElementById('vendaModal');
-            const titulo = document.getElementById('vendaModalTitulo');
-            const containerCliente = document.getElementById('container-venda-cliente');
+            const titulo = document.getElementById('modal-titulo');
+            const containerCliente = document.getElementById('container-cliente');
             const inputCliente = document.getElementById('venda-cliente');
-            const btnSubmit = document.getElementById('btn-venda-submit');
+            const btnSubmit = document.getElementById('btn-submit-modal');
             const inputModo = document.getElementById('venda-modo');
 
             if (!modal) return;
@@ -431,10 +564,7 @@
             if (modo === 'catalogo') {
                 if (titulo) titulo.innerHTML = `<i class="fa-solid fa-box-open text-purple-400"></i> Adicionar ao Catálogo`;
                 if (containerCliente) containerCliente.classList.add('hidden');
-                if (inputCliente) {
-                    inputCliente.removeAttribute('required');
-                    inputCliente.value = '';
-                }
+                if (inputCliente) inputCliente.removeAttribute('required');
                 if (btnSubmit) btnSubmit.innerText = "Salvar no Catálogo";
             } else {
                 if (titulo) titulo.innerHTML = `<i class="fa-solid fa-cart-plus text-cyan-400"></i> Registrar Venda`;
@@ -450,7 +580,7 @@
             if (modal) modal.classList.add('hidden');
         }
 
-        // Sincronização de inserts na tabela correspondente do banco
+        // Lançar Vendas ou Serviços no Catálogo
         async function handleSalvarVenda(e) {
             e.preventDefault();
             const modo = document.getElementById('venda-modo').value;
@@ -460,12 +590,12 @@
             
             try {
                 if (modo === 'catalogo') {
-                    const { error } = await _supabase.from('servicos_produtos').insert([{ tipo, nome, valor, criado_em: new Date() }]);
+                    const { error } = await _supabase.from('servicos_produtos').insert([{ tipo, nome, valor }]);
                     if (error) throw error;
                     alert(`Sucesso! Adicionado ao catálogo.`);
                 } else {
                     const cliente = document.getElementById('venda-cliente').value;
-                    const { error } = await _supabase.from('vendas').insert([{ tipo, nome, valor, cliente, criado_em: new Date() }]);
+                    const { error } = await _supabase.from('vendas').insert([{ tipo, nome, valor, cliente }]);
                     if (error) throw error;
                     alert(`Sucesso! Venda registrada.`);
                 }
@@ -476,7 +606,7 @@
             }
         }
 
-        // Filtro nativo simples da tabela de clientes
+        // Busca de Clientes local
         function searchClientes(query) {
             const lower = query.toLowerCase();
             document.querySelectorAll('#clientes-table-body tr').forEach(row => {
@@ -484,7 +614,7 @@
             });
         }
 
-        // Cadastro de equipe de colaboradores via Supabase Auth e Banco de Dados
+        // Cadastro de Funcionários / Colaboradores
         async function handleCadastrarColaborador(e) {
             e.preventDefault();
             const nome = document.getElementById('colab-nome').value;
@@ -502,7 +632,7 @@
                 if (authError) throw authError;
 
                 const { error: dbError } = await _supabase.from('colaboradores').insert([{
-                    id: authData.user?.id, nome, email, documento, whatsapp, endereco, remuneracao, criado_em: new Date()
+                    id: authData.user?.id, nome, email, documento, whatsapp, endereco, remuneracao
                 }]);
                 if (dbError) throw dbError;
 
@@ -513,7 +643,7 @@
             }
         }
 
-        // Atualização reativa de andamento do atendimento (Mudança no pátio)
+        // Agenda Avançada Realtime e Encaixe
         async function alterarStatusAgendaPublic(id, novoStatus) {
             try {
                 const { error } = await _supabase.from('agenda').update({ status: novoStatus }).eq('id', id);
@@ -523,7 +653,6 @@
             }
         }
 
-        // Encaixe manual direto pela planilha interna
         async function adicionarDiretoNaPlanilha(e) {
             e.preventDefault();
             const nome = document.getElementById('agenda-nome').value;
@@ -534,7 +663,7 @@
 
             try {
                 const { error } = await _supabase.from('agenda').insert([{
-                    cliente: nome, veiculo: carro, servico: serv, data: data, horario: hora, status: "1", criado_em: new Date()
+                    cliente: nome, veiculo: carro, servico: serv, data: data, horario: hora, status: "1"
                 }]);
                 if (error) throw error;
                 e.target.reset();
@@ -543,10 +672,9 @@
             }
         }
 
-        // ==========================================
-        // CARREGAMENTO E RENDERIZAÇÃO DA INTERFACE
-        // ==========================================
+        // CONEXÕES EM TEMPO REAL (SUPABASE REALTIME FETCHERS)
 
+        // 1. Clientes (Tabela usuarios)
         async function carregarClientesAdmin() {
             try {
                 const { data, error } = await _supabase.from('usuarios').select('*').order('criado_em', { ascending: false });
@@ -575,6 +703,7 @@
             });
         }
 
+        // 2. Colaboradores (Tabela colaboradores)
         async function carregarColaboradoresAdmin() {
             try {
                 const { data, error } = await _supabase.from('colaboradores').select('*').order('criado_em', { ascending: false });
@@ -599,6 +728,7 @@
             });
         }
 
+        // 3. Agenda Integrada Realtime
         async function carregarAgendaAdmin() {
             try {
                 const { data, error } = await _supabase.from('agenda').select('*').order('criado_em', { ascending: false });
@@ -629,7 +759,7 @@
 
             if (painelCards) {
                 const ativos = listaAgenda.filter(a => a.status !== "4");
-                painelCards.innerHTML = ativos.length === 0 ? `<div class="p-4 bg-white/5 rounded-xl col-span-2 text-center text-white/30 text-xs">Nenhum veículo em atendimento no pátio/estufa agora.</div>` : '';
+                painelCards.innerHTML = ativos.length === 0 ? `<div class="p-4 bg-white/5 rounded-xl col-span-2 text-center text-white/30 text-xs">Nenhum veículo em atendimento no pátio agora.</div>` : '';
                 ativos.forEach(a => {
                     painelCards.insertAdjacentHTML('beforeend', `
                         <div class="bg-black/40 border border-white/5 p-4 rounded-xl space-y-3">
@@ -640,7 +770,7 @@
                                 </div>
                                 <span class="text-[9px] bg-purple-500/10 border border-purple-500/30 text-purple-300 px-2 py-0.5 rounded font-bold whitespace-nowrap">${a.servico}</span>
                             </div>
-                            <select onchange="alterarStatusAgendaPublic('${a.id}', this.value)" class="admin-select w-full p-2.5 rounded-lg text-xs outline-none cursor-pointer">
+                            <select onchange="alterarStatusAgendaPublic('${a.id}', this.value)" class="admin-select w-full p-2.5 rounded-lg text-xs outline-none cursor-pointer bg-neutral-900 text-white border border-white/10">
                                 <option value="1" ${a.status === "1" ? "selected" : ""}>1. Recebido (Pátio)</option>
                                 <option value="2" ${a.status === "2" ? "selected" : ""}>2. Preparação (Lavagem)</option>
                                 <option value="3" ${a.status === "3" ? "selected" : ""}>3. Aplicação & Cura (Estufa)</option>
@@ -652,6 +782,7 @@
             atualizarCardsContadores();
         }
 
+        // 4. Catálogo de Serviços e Produtos
         async function carregarCatalogoAdmin() {
             try {
                 const { data, error } = await _supabase.from('servicos_produtos').select('*').order('criado_em', { ascending: false });
@@ -667,19 +798,20 @@
             container.innerHTML = listaCatalogo.length === 0 ? `<div class="p-6 bg-white/5 rounded-2xl col-span-3 text-center text-white/30 text-xs">Nenhum produto ou serviço catalogado no sistema.</div>` : '';
             listaCatalogo.forEach(item => {
                 container.insertAdjacentHTML('beforeend', `
-                    <div class="cloud-container rounded-2xl p-5 flex flex-col justify-between">
+                    <div class="cloud-container rounded-2xl p-5 flex flex-col justify-between bg-white/5 border border-white/5">
                         <div>
                             <div class="flex justify-between items-start"><h3 class="text-sm font-bold">${item.nome}</h3><span class="text-[9px] px-2 py-0.5 rounded font-mono ${item.tipo === 'Produto' ? 'bg-amber-500/10 text-amber-400' : 'bg-cyan-500/10 text-cyan-400'}">${item.tipo}</span></div>
                             <p class="text-xs text-white/50 mt-1">Disponibilizado e atualizado para os acessos do usuário em tempo real.</p>
                         </div>
                         <div class="flex justify-between items-center mt-4 pt-2 border-t border-white/5">
                             <span class="text-xs text-white/40">Valor</span>
-                            <span class="text-sm font-automotive font-bold text-cyan-400">R$ ${item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            <span class="text-sm font-bold text-cyan-400">R$ ${item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                         </div>
                     </div>`);
             });
         }
 
+        // 5. Financeiro e Vendas Avançadas
         async function carregarVendasAdmin() {
             try {
                 const { data, error } = await _supabase.from('vendas').select('*').order('criado_em', { ascending: false });
@@ -695,25 +827,26 @@
             let totalSemana = 0;
             let totalMes = 0;
 
-            listaVendas.forEach(v => {
-                const dataVenda = new Date(v.criado_em);
-                const diffTempo = Math.abs(agora - dataVenda);
-                const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+            const inicioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).getTime();
+            const seteDiasAtras = inicioHoje - (7 * 24 * 60 * 60 * 1000);
+            const trintaDiasAtras = inicioHoje - (30 * 24 * 60 * 60 * 1000);
 
-                if (dataVenda.toDateString() === agora.toDateString()) totalHoje += v.valor;
-                if (diffDias <= 7) totalSemana += v.valor;
-                if (diffDias <= 30) totalMes += v.valor;
+            listaVendas.forEach(v => {
+                const timeVenda = new Date(v.criado_em).getTime();
+
+                if (timeVenda >= inicioHoje) totalHoje += v.valor;
+                if (timeVenda >= seteDiasAtras) totalSemana += v.valor;
+                if (timeVenda >= trintaDiasAtras) totalMes += v.valor;
             });
 
             const domHoje = document.getElementById('fin-hoje');
             const domSemana = document.getElementById('fin-semana');
             const domMes = document.getElementById('fin-mes');
+            const domFatDia = document.getElementById('realtime-faturamento-dia');
 
             if(domHoje) domHoje.innerText = `R$ ${totalHoje.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
             if(domSemana) domSemana.innerText = `R$ ${totalSemana.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
             if(domMes) domMes.innerText = `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            
-            const domFatDia = document.getElementById('realtime-faturamento-dia');
             if (domFatDia) domFatDia.innerText = `R$ ${totalHoje.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
             
             renderizarGraficoExecutivo(totalMes);
@@ -724,18 +857,15 @@
             const domClieTotal = document.getElementById('realtime-clientes-total');
 
             if (domServHoje) {
-                const countHoje = listaAgenda.filter(a => a.status !== "4").length;
-                domServHoje.innerText = `${countHoje} Atendimento${countHoje !== 1 ? 's' : ''}`;
+                const countHoje = listaAgenda.length;
+                domServHoje.innerText = `${countHoje} Lançamento${countHoje !== 1 ? 's' : ''}`;
             }
             if (domClieTotal) {
                 domClieTotal.innerText = `${listaClientes.length} Clientes`;
             }
         }
 
-        // ==========================================
-        // RESTRUTURAÇÃO DO CHAT (MENSAGENS EM TEMPO REAL)
-        // ==========================================
-
+        // 6. Central de Chat entre Admin e Cada Usuário
         async function carregarListaChatUsuarios() {
             const container = document.getElementById('chat-usuarios-lista');
             if (!container) return;
@@ -746,21 +876,18 @@
                 container.insertAdjacentHTML('beforeend', `
                     <div onclick="abrirChatDireto('${u.id}')" class="p-3 ${ativoClass} rounded-xl border-l-2 cursor-pointer hover:bg-white/10 transition-all flex justify-between items-center">
                         <span>${u.nome || 'Usuário Ceramink'}</span>
-                        <span id="badge-user-${u.id}" class="w-2 h-2 bg-green-400 rounded-full hidden"></span>
+                        <span id="badge-user-${u.id}" class="w-1.5 h-1.5 bg-green-400 rounded-full hidden"></span>
                     </div>`);
             });
         }
 
         async function abrirChatDireto(userId) {
             usuarioChatAtivo = userId;
-            
-            // Remove as marcações de notificação pendente do usuário selecionado
-            const badgeNode = document.getElementById(`badge-user-${userId}`);
-            if(badgeNode) badgeNode.classList.add('hidden');
-
             carregarListaChatUsuarios();
-            switchTab('chat', document.querySelector('button[onclick*="chat"]'));
             
+            const badgeNode = document.getElementById(`badge-user-${userId}`);
+            if (badgeNode) badgeNode.classList.add('hidden');
+
             try {
                 const { data, error } = await _supabase.from('mensagens_chat')
                     .select('*')
@@ -774,11 +901,11 @@
                 
                 data.forEach(m => {
                     const isAdmin = m.remetente === 'admin';
-                    const msgAlign = isAdmin ? 'ml-auto bg-cyan-500 text-black font-medium' : 'mr-auto bg-white/5 text-white';
+                    const msgAlign = isAdmin ? 'ml-auto bg-cyan-500 text-black' : 'mr-auto bg-white/5 text-white';
                     boxMsg.insertAdjacentHTML('beforeend', `
-                        <div class="p-3 rounded-xl max-w-sm ${msgAlign} mb-2 flex flex-col shadow-sm">
+                        <div class="p-3 rounded-xl max-w-sm ${msgAlign} mb-2">
                             <p class="${isAdmin ? 'text-black/60' : 'text-cyan-400'} font-bold text-[10px]">${isAdmin ? 'Você (Admin)' : 'Cliente'}</p>
-                            <p class="break-words text-xs mt-0.5">${m.texto}</p>
+                            <p class="break-words text-xs">${m.texto}</p>
                         </div>`);
                 });
                 boxMsg.scrollTop = boxMsg.scrollHeight;
@@ -793,7 +920,7 @@
 
             try {
                 const { error } = await _supabase.from('mensagens_chat').insert([{
-                    usuario_id: usuarioChatAtivo, remetente: 'admin', texto: textoMsg, criado_em: new Date()
+                    usuario_id: usuarioChatAtivo, remetente: 'admin', texto: textoMsg
                 }]);
                 if (error) throw error;
                 input.value = '';
@@ -801,11 +928,8 @@
             } catch (err) { alert("Falha ao enviar mensagem: " + err.message); }
         }
 
-        // ==========================================
-        // CANAL GLOBAL DO SUPABASE REALTIME
-        // ==========================================
-
-        function ativarEscutasEmTempoReal() {
+        // ESCUTA GLOBAL DOS GATILHOS REALTIME (SEM REFRESH DA PÁGINA)
+        function activarEscutasEmTempoReal() {
             _supabase.channel('public-realtime-ceramink')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios' }, (payload) => { 
                     console.log("Mudança em usuários detectada!", payload);
@@ -825,16 +949,10 @@
                         if(chatGeneralBadge) chatGeneralBadge.classList.remove('hidden');
                     }
                 })
-                .subscribe((status) => {
-                    console.log("Status do canal Realtime:", status);
-                });
+                .subscribe();
         }
 
-        // ==========================================
-        // COMPONENTES AUXILIARES (GRÁFICOS E JANELAS)
-        // ==========================================
-
-        let chartInstance = null;
+        // Gráfico Fluido Dinâmico do Painel Executivo
         function renderizarGraficoExecutivo(valorBaseMes) {
             const canvasElement = document.getElementById('dashboardChart');
             if (!canvasElement) return;
@@ -892,14 +1010,14 @@
             }
         });
 
-        // INICIALIZAÇÃO COMPLETA DO ECOSSISTEMA
+        // INICIALIZAÇÃO COMPLETA DO SISTEMA
         document.addEventListener("DOMContentLoaded", () => {
             carregarClientesAdmin().then(() => carregarListaChatUsuarios());
             carregarColaboradoresAdmin();
             carregarAgendaAdmin();
             carregarCatalogoAdmin();
             carregarVendasAdmin();
-            ativarEscutasEmTempoReal();
+            activarEscutasEmTempoReal();
         });
     </script>
 </body>
