@@ -236,70 +236,40 @@
 
         // BUSCA E RENDERIZAÇÃO REAL DOS DADOS DO COLABORADOR
         async function carregarDadosIniciais() {
-            try {
-                const { data, error } = await _supabase
-                    .from('vendas')
-                    .select('*')
-                    .eq('colaborador', COLABORADOR_ATUAL)
-                    .order('criado_em', { ascending: false });
+    console.log("Tentando buscar dados para:", COLABORADOR_ATUAL); // DEBUG NO CONSOLE
+    
+    try {
+        // Primeiro, vamos apenas listar as colunas para garantir que a tabela existe
+        const { data, error } = await _supabase
+            .from('vendas')
+            .select('*')
+            // Se o erro 400 persistir, comente a linha abaixo para testar se busca tudo
+            .eq('colaborador', COLABORADOR_ATUAL) 
+            .order('criado_em', { ascending: false });
 
-                if (error) throw error;
-
-                document.getElementById('status-banco').className = "text-green-400 font-bold";
-                document.getElementById('status-banco').innerText = "● Supabase Conectado";
-
-                totalProduzido = 0;
-                totalComissao = 0;
-                totalServicos = 0;
-                
-                const historicoContainer = document.getElementById('historico-lançamentos');
-                historicoContainer.innerHTML = '';
-
-                const ganhosAgrupados = { 'Dom-Ter': 0, 'Qua-Qui': 0, 'Sex-Sáb': 0, 'Hoje': 0 };
-                const hoje = new Date().toDateString();
-
-                if(data && data.length > 0) {
-                    data.forEach(item => {
-                        const valorBruto = parseFloat(item.valor || 0);
-                        const comissaoItem = parseFloat(item.valor_comissao || (valorBruto * taxaComissao));
-
-                        totalProduzido += valorBruto;
-                        totalComissao += comissaoItem;
-                        totalServicos++;
-
-                        const dataItem = new Date(item.criated_at || item.criado_em);
-                        if (dataItem.toDateString() === hoje) {
-                            ganhosAgrupados['Hoje'] += comissaoItem;
-                        } else {
-                            const diaSemana = dataItem.getDay();
-                            if (diaSemana >= 0 && diaSemana <= 2) ganhosAgrupados['Dom-Ter'] += comissaoItem;
-                            else if (diaSemana >= 3 && diaSemana <= 4) ganhosAgrupados['Qua-Qui'] += comissaoItem;
-                            else if (diaSemana >= 5 && diaSemana <= 6) ganhosAgrupados['Sex-Sáb'] += comissaoItem;
-                        }
-
-                        renderizarItemLista(item, false);
-                    });
-                } else {
-                    historicoContainer.innerHTML = `<p id="sem-lancamentos" class="text-white/40 text-center py-4">Nenhum lançamento encontrado para seu usuário.</p>`;
-                }
-
-                atualizarCardsTela();
-                
-                colabChart.data.datasets[0].data = [
-                    ganhosAgrupados['Dom-Ter'],
-                    ganhosAgrupados['Qua-Qui'],
-                    ganhosAgrupados['Sex-Sáb'],
-                    ganhosAgrupados['Hoje']
-                ];
-                colabChart.update();
-
-            } catch (err) {
-                console.error("Erro na comunicação com Supabase:", err);
-                document.getElementById('status-banco').className = "text-red-400 font-bold";
-                document.getElementById('status-banco').innerText = "● Erro de Conectividade";
-                document.getElementById('historico-lançamentos').innerHTML = `<p class="text-red-400 text-center py-4">Falha ao carregar os dados. Verifique a tabela 'vendas'.</p>`;
-            }
+        if (error) {
+            console.error("Detalhes do erro Supabase:", error);
+            throw new Error(error.message);
         }
+
+        // ... (resto da lógica de renderização igual ao que você já tem)
+        document.getElementById('status-banco').className = "text-green-400 font-bold";
+        document.getElementById('status-banco').innerText = "● Conectado";
+        
+        // Se a data vier vazia, avisa o usuário
+        if (!data || data.length === 0) {
+            document.getElementById('historico-lançamentos').innerHTML = 
+                `<p class="text-white/40 text-center py-4">Nenhum registro encontrado para <b>${COLABORADOR_ATUAL}</b>.</p>`;
+            return;
+        }
+
+        // ... continue o processamento aqui
+    } catch (err) {
+        console.error("Erro na comunicação:", err);
+        document.getElementById('status-banco').className = "text-red-400 font-bold";
+        document.getElementById('status-banco').innerText = "● Erro (Verifique o Console)";
+    }
+}
 
         // PERSISTÊNCIA DE NOVOS LANÇAMENTOS
         async function salvarLançamentoColaborador(e) {
