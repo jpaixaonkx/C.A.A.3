@@ -710,6 +710,99 @@
             const selectElement = document.getElementById('status-civic');
             if (selectElement) selectElement.value = localStorage.getItem('ceramink_status_veiculo') || "1";
         });
+
+        // VARIÁVEL GLOBAL PARA ARMAZENAR OS CLIENTES NA MEMÓRIA DO APP
+let listaClientes = [];
+
+// 1. FUNÇÃO PARA BUSCAR TODOS OS CLIENTES CADASTRADOS (CARGA INICIAL)
+async function carregarClientesAdmin() {
+    try {
+        const { data, error } = await _supabase
+            .from('usuarios')
+            .select('*')
+            .order('criado_em', { ascending: false });
+
+        if (error) throw error;
+
+        listaClientes = data || [];
+        renderizarTabelaClientes();
+    } catch (err) {
+        console.error("Erro ao carregar lista de clientes:", err.message);
+    }
+}
+
+// 2. FUNÇÃO PARA EXIBIR OS CLIENTES NA TABELA (HTML)
+function renderizarTabelaClientes() {
+    const tabela = document.getElementById('tabela-clientes-corpo'); // Verifique se o ID bate com o seu HTML
+    if (!tabela) return;
+
+    if (listaClientes.length === 0) {
+        tabela.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-white/30">Nenhum cliente cadastrado.</td></tr>`;
+        return;
+    }
+
+    tabela.innerHTML = '';
+    listaClientes.forEach(cliente => {
+        const dataCadastro = cliente.criado_em ? new Date(cliente.criado_em).toLocaleDateString('pt-BR') : '---';
+        
+        const linha = `
+            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors text-xs md:text-sm">
+                <td class="p-3 font-bold text-cyan-400">${cliente.nome || 'Sem Nome'}</td>
+                <td class="p-3 text-white/70">${cliente.email || '---'}</td>
+                <td class="p-3 text-white/50">${dataCadastro}</td>
+                <td class="p-3 text-right">
+                    <button onclick="abrirModalNovoServico('${cliente.id}', '${cliente.nome}')" class="bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-black px-2.5 py-1 rounded-lg border border-cyan-500/20 text-xs font-bold transition-all mr-2">
+                        <i class="fa-solid fa-plus"></i> Iniciar OS
+                    </button>
+                    <button onclick="verDetalhesCliente('${cliente.id}')" class="bg-purple-500/10 hover:bg-purple-500 text-purple-300 hover:text-white px-2.5 py-1 rounded-lg border border-purple-500/20 text-xs font-bold transition-all">
+                        <i class="fa-solid fa-eye"></i> Histórico
+                    </button>
+                </td>
+            </tr>
+        `;
+        tabela.insertAdjacentHTML('beforeend', linha);
+    });
+}
+
+// 3. ATIVAÇÃO DO REALTIME PARA ATUALIZAR EM TEMPO REAL SEM FAZER F5
+function escutarClientesEmTempoReal() {
+    _supabase
+        .channel('realtime-clientes-admin')
+        .on('postgres_changes', { 
+            event: '*', // Escuta INSERTs, UPDATEs e DELETEs
+            schema: 'public', 
+            table: 'usuarios' 
+        }, (payload) => {
+            console.log("Mudança detectada em clientes:", payload);
+
+            if (payload.eventType === 'INSERT') {
+                // Adiciona o novo cliente no topo da lista da memória
+                listaClientes.unshift(payload.new);
+            } 
+            else if (payload.eventType === 'UPDATE') {
+                // Localiza o cliente atualizado e modifica os dados dele na memória
+                const index = listaClientes.findIndex(c => c.id === payload.new.id);
+                if (index !== -1) {
+                    listaClientes[index] = payload.new;
+                }
+            } 
+            else if (payload.eventType === 'DELETE') {
+                // Remove o cliente caso ele tenha sido deletado
+                listaClientes = listaClientes.filter(c => c.id !== payload.old.id);
+            }
+
+            // Atualiza a interface visual na hora
+            renderizarTabelaClientes();
+        })
+        .subscribe();
+}
+
+// 4. GATILHO DE INICIALIZAÇÃO (Coloque dentro do seu DOMContentLoaded ou função de login do Admin)
+document.addEventListener("DOMContentLoaded", () => {
+    // ... suas verificações de login do admin ...
+    carregarClientesAdmin();       // Carrega quem já está lá
+    escutarClientesEmTempoReal(); // Fica vigiando novos cadastros
+});
     </script>
 </body>
 </html>
