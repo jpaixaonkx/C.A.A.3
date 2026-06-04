@@ -36,7 +36,7 @@
 
         .cloud-container {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-            border: 1px border rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
         }
 
@@ -250,7 +250,7 @@
                                 <h3 class="text-sm font-bold">Encaixe de Horário</h3>
                                 <p class="text-xs text-white/40">Adicionar agendamento manual na planilha</p>
                             </div>
-                            <form onsubmit="adicionarDiretoNaPlanilha(e)" class="space-y-3.5">
+                            <form onsubmit="adicionarDiretoNaPlanilha(event)" class="space-y-3.5">
                                 <div class="space-y-1">
                                     <label class="text-[11px] text-white/50 font-medium">Nome do Cliente</label>
                                     <input type="text" id="agenda-nome" required class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-cyan-500/50 transition-all">
@@ -552,6 +552,7 @@
             modal.classList.remove('hidden');
         }
 
+        // Fechar Modal
         function closeVendaModal() {
             const modal = document.getElementById('vendaModal');
             if (modal) modal.classList.add('hidden');
@@ -683,7 +684,7 @@
 
         // CONEXÕES EM TEMPO REAL (SUPABASE REALTIME)
 
-        // 1. Clientes (Tabela usuarios)
+        // 1. Clientes (Tabela usuarios) - CARREGAMENTO E ATUALIZAÇÃO REATIVA
         async function carregarClientesAdmin() {
             try {
                 const { data, error } = await _supabase.from('usuarios').select('*').order('criado_em', { ascending: false });
@@ -691,13 +692,21 @@
                 listaClientes = data || [];
                 renderizarTabelaClientes();
                 atualizarCardsContadores();
-            } catch (err) { console.error(err.message); }
+            } catch (err) { 
+                console.error("Erro ao carregar clientes do Supabase:", err.message); 
+            }
         }
 
         function renderizarTabelaClientes() {
             const tabela = document.getElementById('clientes-table-body');
             if (!tabela) return;
-            tabela.innerHTML = listaClientes.length === 0 ? `<tr><td colspan="4" class="text-center p-4 text-white/30">Nenhum cliente cadastrado no app.</td></tr>` : '';
+            
+            tabela.innerHTML = '';
+            
+            if (listaClientes.length === 0) {
+                tabela.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-white/30">Nenhum cliente cadastrado no app.</td></tr>`;
+                return;
+            }
             
             listaClientes.forEach(cliente => {
                 const dataCadastro = cliente.criado_em ? new Date(cliente.criado_em).toLocaleDateString('pt-BR') : '---';
@@ -706,7 +715,11 @@
                         <td class="p-4 font-bold text-cyan-400">${cliente.nome || 'Sem Nome'}</td>
                         <td class="p-4 text-white/60">${cliente.email || '---'}</td>
                         <td class="p-4 font-mono text-white/50">${cliente.whatsapp || dataCadastro}</td>
-                        <td class="p-4 text-right"><button onclick="abrirChatDireto('${cliente.id}')" class="text-purple-400 font-bold hover:underline"><i class="fa-solid fa-comments mr-1"></i> Contato</button></td>
+                        <td class="p-4 text-right">
+                            <button onclick="abrirChatDireto('${cliente.id}')" class="text-purple-400 font-bold hover:underline">
+                                <i class="fa-solid fa-comments mr-1"></i> Contato
+                            </button>
+                        </td>
                     </tr>`;
                 tabela.insertAdjacentHTML('beforeend', linha);
             });
@@ -831,7 +844,6 @@
             } catch (err) { console.error(err.message); }
         }
 
-        // Calcula os dados e injeta nos cards do dashboard
         function calcularEExibirFinanceiro() {
             const agora = new Date();
             let totalHoje = 0;
@@ -874,7 +886,7 @@
             }
             if (domClieTotal) {
                 const countClientes = (typeof listaClientes !== 'undefined') ? listaClientes.length : 0;
-                domClieTotal.innerText = `${countClientes} Clientes`;
+                domClieTotal.innerText = `${countClientes} Cliente${countClientes !== 1 ? 's' : ''}`;
             }
         }
 
@@ -946,11 +958,12 @@
             } catch (err) { alert("Falha ao enviar mensagem: " + err.message); }
         }
 
-        // ESCUTA GLOBAL DOS GATILHOS REALTIME (SEM REFRESH DA PÁGINA)
+        // ESCUTA GLOBAL DOS GATILHOS REALTIME (ATUALIZAÇÃO DA TABELA DE CLIENTES EM TEMPO REAL)
         function BierEsctRealtime() {
             _supabase.channel('public-realtime-ceramink')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios' }, (payload) => { 
-                    console.log("Mudança em usuários detectada!", payload);
+                    console.log("Sincronização em tempo real: Tabela de usuários alterada.", payload);
+                    // Dispara a recarga dos dados na memória e atualiza a interface instantaneamente
                     carregarClientesAdmin().then(() => carregarListaChatUsuarios()); 
                 })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'colaboradores' }, () => { carregarColaboradoresAdmin(); })
@@ -970,7 +983,7 @@
                 .subscribe();
         }
 
-        // Gráfico Fluido Dinâmico do Painel Executivo
+        // Gráfico do Painel Executivo
         let chartInstance = null;
         function renderizarGraficoExecutivo(valorBaseMes) {
             const canvasElement = document.getElementById('dashboardChart');
@@ -1031,7 +1044,7 @@
             }
         });
 
-        // INICIALIZAÇÃO COMPLETA DO SISTEMA
+        // INICIALIZAÇÃO DO SISTEMA
         document.addEventListener("DOMContentLoaded", () => {
             if (typeof listaClientes === 'undefined') window.listaClientes = [];
             if (typeof listaColaboradores === 'undefined') window.listaColaboradores = [];
