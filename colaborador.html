@@ -2,23 +2,56 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Ceramink - Painel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Colaborador - Ceramink</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { background-color: #060913; color: white; font-family: sans-serif; }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="p-6">
+<body class="bg-slate-900 text-white min-h-screen p-4 md:p-8">
 
-    <div class="max-w-4xl mx-auto">
-        <header class="mb-8">
-            <h1 class="text-2xl font-bold">Painel do Colaborador</h1>
-            <p id="status-conexao" class="text-yellow-500">Conectando ao banco...</p>
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold">Dashboard</h1>
+                <p class="text-slate-400" id="usuario-logado">Carregando...</p>
+            </div>
+            <button onclick="logout()" class="bg-red-500/10 text-red-500 px-4 py-2 rounded-lg text-sm hover:bg-red-500/20">Sair</button>
         </header>
 
-        <div id="container-vendas" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                <h3 class="text-slate-400 text-sm">Comissão Estimada</h3>
+                <p id="total-comissao" class="text-3xl font-bold text-emerald-400">R$ 0,00</p>
             </div>
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                <h3 class="text-slate-400 text-sm">Total Produzido</h3>
+                <p id="total-produzido" class="text-3xl font-bold">R$ 0,00</p>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                <button onclick="document.getElementById('modal-venda').classList.remove('hidden')" class="w-full h-full flex flex-col items-center justify-center text-blue-400 hover:text-blue-300">
+                    <i class="fa-solid fa-plus-circle text-2xl mb-2"></i>
+                    <span>Lançar Venda</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-8">
+            <canvas id="graficoLucros" height="100"></canvas>
+        </div>
+    </div>
+
+    <div id="modal-venda" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 p-8 rounded-2xl border border-slate-700 w-full max-w-md">
+            <h2 class="text-xl font-bold mb-4">Lançar Nova Venda</h2>
+            <form id="form-venda" class="space-y-4">
+                <input type="text" id="nome-item" placeholder="Nome do Serviço/Produto" class="w-full p-3 bg-slate-800 rounded border border-slate-700" required>
+                <input type="number" id="valor-item" placeholder="Valor (R$)" step="0.01" class="w-full p-3 bg-slate-800 rounded border border-slate-700" required>
+                <button type="submit" class="w-full bg-blue-600 py-3 rounded-lg font-bold">Confirmar Lançamento</button>
+                <button type="button" onclick="document.getElementById('modal-venda').classList.add('hidden')" class="w-full text-slate-400">Cancelar</button>
+            </form>
+        </div>
     </div>
 
     <script>
@@ -26,50 +59,55 @@
         const SUPABASE_URL = "https://fxetjbrwsjyjpsvlbrdf.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU";
         
-        // ** MUDE ESTA VARIÁVEL PARA O NOME DA SUA COLUNA NO SUPABASE **
+        // ** AJUSTE ESTA VARIÁVEL PARA O NOME DA SUA COLUNA NO SUPABASE **
         const NOME_COLUNA_USUARIO = "colaborador"; 
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const USUARIO_LOGADO = localStorage.getItem('usuario_logado') || "Colaborador Geral";
+        const user = localStorage.getItem('usuario_logado') || "Colaborador";
+        document.getElementById('usuario-logado').innerText = "Olá, " + user;
 
-        async function carregarDados() {
-            try {
-                // Seleciona tudo da tabela vendas
-                const { data, error } = await _supabase
-                    .from('vendas')
-                    .select('*')
-                    .eq(NOME_COLUNA_USUARIO, USUARIO_LOGADO)
-                    .order('created_at', { ascending: false });
+        // Função para carregar dados
+        async function carregarDashboard() {
+            const { data, error } = await _supabase
+                .from('vendas')
+                .select('*')
+                .eq(NOME_COLUNA_USUARIO, user);
 
-                if (error) throw error;
-
-                document.getElementById('status-conexao').innerText = "● Conectado e Sincronizado";
-                document.getElementById('status-conexao').classList.replace('text-yellow-500', 'text-green-500');
-
-                const container = document.getElementById('container-vendas');
-                container.innerHTML = data.map(venda => `
-                    <div class="p-4 bg-gray-800 rounded border border-gray-700">
-                        <p class="font-bold">${venda.nome || 'Serviço'}</p>
-                        <p class="text-sm text-gray-400">Valor: R$ ${venda.valor}</p>
-                    </div>
-                `).join('');
-
-            } catch (err) {
-                console.error("Erro:", err);
-                document.getElementById('status-conexao').innerText = "Erro: Coluna '" + NOME_COLUNA_USUARIO + "' não encontrada no banco.";
-                document.getElementById('status-conexao').classList.replace('text-yellow-500', 'text-red-500');
+            if (error) {
+                console.error("Erro ao carregar:", error);
+                return;
             }
+
+            let total = 0;
+            data.forEach(v => total += parseFloat(v.valor || 0));
+            
+            document.getElementById('total-produzido').innerText = `R$ ${total.toFixed(2)}`;
+            document.getElementById('total-comissao').innerText = `R$ ${(total * 0.3).toFixed(2)}`;
         }
 
-        // Inicialização
-        carregarDados();
+        // Função de envio
+        document.getElementById('form-venda').onsubmit = async (e) => {
+            e.preventDefault();
+            const { error } = await _supabase.from('vendas').insert([{
+                [NOME_COLUNA_USUARIO]: user,
+                nome: document.getElementById('nome-item').value,
+                valor: document.getElementById('valor-item').value,
+                status: 'Concluído'
+            }]);
 
-        // Realtime para atualizar a tela automaticamente
-        _supabase.channel('vendas_realtime')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'vendas' }, () => {
-                carregarDados();
-            })
-            .subscribe();
+            if (!error) {
+                alert("Venda registrada!");
+                document.getElementById('modal-venda').classList.add('hidden');
+                carregarDashboard();
+            }
+        };
+
+        function logout() {
+            localStorage.removeItem('usuario_logado');
+            window.location.href = 'index.html';
+        }
+
+        carregarDashboard();
     </script>
 </body>
 </html>
