@@ -241,16 +241,10 @@
     try {
         // Primeiro, vamos apenas listar as colunas para garantir que a tabela existe
         const { data, error } = await _supabase
-            .from('vendas')
-            .select('*')
-            // Se o erro 400 persistir, comente a linha abaixo para testar se busca tudo
-            .eq('colaborador', COLABORADOR_ATUAL) 
-            .order('criado_em', { ascending: false });
-
-        if (error) {
-            console.error("Detalhes do erro Supabase:", error);
-            throw new Error(error.message);
-        }
+    .from('vendas')
+    .select('*')
+    .eq('nome_colaborador', COLABORADOR_ATUAL) // Mude aqui para o nome real
+    .order('criado_em', { ascending: false });
 
         // ... (resto da lógica de renderização igual ao que você já tem)
         document.getElementById('status-banco').className = "text-green-400 font-bold";
