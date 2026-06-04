@@ -21,7 +21,7 @@
                 radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.04) 0px, transparent 50%);
         }
 
-        /* Efeito 3D nos Botões */
+        /* Efeito 3D nos Botões Gerais */
         .btn-3d {
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 4px 0px 0px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.3);
@@ -76,15 +76,17 @@
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.3); }
 
-        /* Menu de Ações Flutuantes */
+        /* Menu do Botão Flutuante (FAB) */
         #fab-menu {
             transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            transform: scale(0) translateY(40px);
+            transform: scale(0) translateY(20px);
             opacity: 0;
+            pointer-events: none;
         }
         #fab-menu.active {
             transform: scale(1) translateY(0);
             opacity: 1;
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -171,7 +173,7 @@
                 </div>
             </header>
 
-            <main class="flex-1 p-4 lg:p-6 overflow-y-auto max-w-[1600px] w-full mx-auto pb-24">
+            <main class="flex-1 p-4 lg:p-6 overflow-y-auto max-w-[1600px] w-full mx-auto pb-28">
                 
                 <div id="tab-dashboard" class="tab-content space-y-6">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -440,16 +442,16 @@
         </div>
     </div>
 
-    <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3 sm:hidden">
-        <div id="fab-menu" class="flex flex-col gap-2.5 items-end">
-            <button onclick="openVendaModal('catalogo'); toggleFabMenu();" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xl flex items-center gap-2 border-b-2 border-purple-700 active:scale-95 transition-all">
-                Lançar Item <i class="fa-solid fa-box-open"></i>
+    <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3.5">
+        <div id="fab-menu" class="flex flex-col gap-3 items-end mb-1">
+            <button onclick="openVendaModal('catalogo'); toggleFabMenu();" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white font-extrabold text-[11px] tracking-wide uppercase py-3 px-4 rounded-xl shadow-[0_4px_12px_rgba(168,85,247,0.35)] flex items-center gap-2.5 border-b-2 border-purple-800 transition-all transform hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0.5 cursor-pointer">
+                Lançar Item <i class="fa-solid fa-box-open text-xs"></i>
             </button>
-            <button onclick="openVendaModal('venda'); toggleFabMenu();" class="bg-gradient-to-r from-cyan-400 to-cyan-500 text-black font-black text-xs py-2.5 px-4 rounded-xl shadow-xl flex items-center gap-2 border-b-2 border-cyan-700 active:scale-95 transition-all">
-                Registrar Venda <i class="fa-solid fa-cart-plus"></i>
+            <button onclick="openVendaModal('venda'); toggleFabMenu();" class="bg-gradient-to-r from-cyan-400 to-cyan-500 text-black font-black text-[11px] tracking-wide uppercase py-3 px-4 rounded-xl shadow-[0_4px_12px_rgba(0,229,255,0.35)] flex items-center gap-2.5 border-b-2 border-cyan-700 transition-all transform hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0.5 cursor-pointer">
+                Registrar Venda <i class="fa-solid fa-cart-plus text-xs"></i>
             </button>
         </div>
-        <button onclick="toggleFabMenu()" id="fab-main-btn" class="w-14 h-14 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-[0_4px_20px_rgba(0,212,255,0.4)] text-xl border-b-4 border-black/40 active:border-b-0 active:translate-y-1 transition-all duration-150 cursor-pointer">
+        <button onclick="toggleFabMenu()" id="fab-main-btn" class="w-14 h-14 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl border-b-4 border-black/40 transition-all duration-150 cursor-pointer shadow-[0_8px_32px_rgba(0,212,255,0.5),_inset_0_2px_4px_rgba(255,255,255,0.3)] hover:scale-105 active:border-b-0 active:translate-y-1">
             <i id="fab-icon" class="fa-solid fa-plus transition-transform duration-300"></i>
         </button>
     </div>
@@ -503,7 +505,7 @@
         const SUPABASE_KEY = "SUA_SUPABASE_ANON_KEY";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ESTADO GLOBAL ÚNICO (Sem duplicações ou variáveis de redeclaração de bloco)
+        // ESTADO GLOBAL ÚNICO
         var listaClientes = [];
         var listaColaboradores = [];
         var listaAgenda = [];
@@ -533,7 +535,6 @@
                 if (chatGeneralBadge) chatGeneralBadge.classList.add('hidden');
             }
             
-            // Só fecha a aba automaticamente se for em telas MOBILE (largura menor que 1024px)
             if (window.innerWidth < 1024) {
                 toggleSidebar(false);
             }
@@ -707,7 +708,6 @@
         // 1. Clientes (Puxa e valida as propriedades corretas)
         async function carregarClientesAdmin() {
             try {
-                // Sincroniza da tabela 'usuarios'
                 const { data, error } = await _supabase.from('usuarios').select('*');
                 if (error) throw error;
                 listaClientes = data || [];
@@ -725,7 +725,6 @@
             tabela.innerHTML = listaClientes.length === 0 ? `<tr><td colspan="4" class="text-center p-6 text-white/30 font-medium">Nenhum cliente retornado do banco de dados ainda.</td></tr>` : '';
             
             listaClientes.forEach(cliente => {
-                // Tratativa caso o campo de data no banco se chame criado_em ou created_at
                 const dataRaw = cliente.criado_em || cliente.created_at;
                 const dataCadastro = dataRaw ? new Date(dataRaw).toLocaleDateString('pt-BR') : '---';
                 
@@ -742,7 +741,7 @@
             });
         }
 
-        // 2. Colaboradores (Tabela colaboradores)
+        // 2. Colaboradores
         async function carregarColaboradoresAdmin() {
             try {
                 const { data, error } = await _supabase.from('colaboradores').select('*').order('nome', { ascending: true });
@@ -1038,7 +1037,7 @@
             chartInstance.update();
         }
 
-        // Listener para adaptar o comportamento responsivo da tela
+        // Window resize listeners
         window.addEventListener('resize', () => {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
@@ -1050,7 +1049,7 @@
             }
         });
 
-        // INICIALIZAÇÃO COMPLETA DO SISTEMA
+        // INICIALIZAÇÃO COMPLETA
         document.addEventListener("DOMContentLoaded", () => {
             carregarClientesAdmin().then(() => carregarListaChatUsuarios());
             carregarColaboradoresAdmin();
