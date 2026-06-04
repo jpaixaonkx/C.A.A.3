@@ -73,7 +73,7 @@
             </div>
             <div>
                 <span class="text-xs text-white/40 block">Bem-vindo, Colaborador</span>
-                <h1 id="nome-colaborador" class="text-sm md:text-base font-bold text-white">Carregando...</h1>
+                <h1 id="nome-colaborador" class="text-sm md:text-base font-bold text-white">Carregando operador...</h1>
             </div>
         </div>
         <div class="flex items-center gap-4">
@@ -91,7 +91,7 @@
                 <h2 class="text-xl font-bold">Seu Desempenho</h2>
                 <p class="text-xs text-white/50">Acompanhe seus ganhos atualizados em tempo real.</p>
             </div>
-            <div class="text-xs text-white/40">Status do Banco: <span id="status-banco" class="text-yellow-400 font-bold">● Conectando...</span></div>
+            <div class="text-xs text-white/40">Status do Banco: <span id="status-banco" class="text-yellow-400 font-bold">● Inicializando...</span></div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -130,7 +130,7 @@
         <div class="cloud-container rounded-2xl p-6 space-y-4">
             <h3 class="text-sm font-bold border-b border-white/5 pb-2">Seus Lançamentos Recentes</h3>
             <div id="historico-lançamentos" class="space-y-2 text-xs">
-                 <p id="sem-lancamentos" class="text-white/40 text-center py-4">Nenhum lançamento encontrado.</p>
+                 <p id="sem-lancamentos" class="text-white/40 text-center py-4">Procurando lançamentos no banco...</p>
             </div>
         </div>
     </main>
@@ -189,17 +189,9 @@
         const SUPABASE_URL = "https://fxetjbrwsjyjpsvlbrdf.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU";
         
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // Captura o colaborador logado dinamicamente via localStorage
-        const COLABORADOR_ATUAL = localStorage.getItem('usuario_logado') || sessionStorage.getItem('usuario_logado');
+        let _supabase;
+        let COLABORADOR_ATUAL = "Colaborador"; 
         const taxaComissao = 0.30; 
-
-        // Redireciona para o login caso não encontre credenciais ativas do colaborador
-        if (!COLABORADOR_ATUAL) {
-            alert("Acesso negado. Por favor, realize o login novamente.");
-            window.location.href = 'index.html';
-        }
 
         // Estados Globais de Cálculo
         let totalProduzido = 0;
@@ -208,7 +200,13 @@
         let colabChart;
 
         window.addEventListener('DOMContentLoaded', () => {
+            // Inicializa o client de forma totalmente segura pós-carregamento do DOM
+            _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            // Busca o operador dinâmico ou define a string padrão sem travar com erro fatal
+            COLABORADOR_ATUAL = localStorage.getItem('usuario_logado') || sessionStorage.getItem('usuario_logado') || "Colaborador Geral";
             document.getElementById('nome-colaborador').innerText = COLABORADOR_ATUAL;
+
             inicializarGrafico();
             carregarDadosIniciais();
             inscreverRealtime();
@@ -261,8 +259,6 @@
                 const hoje = new Date().toDateString();
 
                 if(data && data.length > 0) {
-                    document.getElementById('sem-lancamentos')?.remove();
-                    
                     data.forEach(item => {
                         const valorBruto = parseFloat(item.valor || 0);
                         const comissaoItem = parseFloat(item.valor_comissao || (valorBruto * taxaComissao));
@@ -271,7 +267,7 @@
                         totalComissao += comissaoItem;
                         totalServicos++;
 
-                        const dataItem = new Date(item.criado_em);
+                        const dataItem = new Date(item.criated_at || item.criado_em);
                         if (dataItem.toDateString() === hoje) {
                             ganhosAgrupados['Hoje'] += comissaoItem;
                         } else {
@@ -284,7 +280,7 @@
                         renderizarItemLista(item, false);
                     });
                 } else {
-                    historicoContainer.innerHTML = `<p id="sem-lancamentos" class="text-white/40 text-center py-4">Nenhum lançamento encontrado.</p>`;
+                    historicoContainer.innerHTML = `<p id="sem-lancamentos" class="text-white/40 text-center py-4">Nenhum lançamento encontrado para seu usuário.</p>`;
                 }
 
                 atualizarCardsTela();
@@ -301,6 +297,7 @@
                 console.error("Erro na comunicação com Supabase:", err);
                 document.getElementById('status-banco').className = "text-red-400 font-bold";
                 document.getElementById('status-banco').innerText = "● Erro de Conectividade";
+                document.getElementById('historico-lançamentos').innerHTML = `<p class="text-red-400 text-center py-4">Falha ao carregar os dados. Verifique a tabela 'vendas'.</p>`;
             }
         }
 
@@ -332,6 +329,7 @@
 
                 if (error) throw error;
                 closeModalLançamento();
+                carregarDadosIniciais(); // Recarrega para manter alinhado
             } catch (err) {
                 alert("Erro ao salvar no banco: " + err.message);
             } finally {
@@ -367,9 +365,9 @@
                 .channel('vendas_operacao')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'vendas' }, payload => {
                     
-                    // Escuta se houver inserções para o próprio operador
                     if (payload.eventType === 'INSERT' && payload.new.colaborador === COLABORADOR_ATUAL) {
-                        document.getElementById('sem-lancamentos')?.remove();
+                        const semLanc = document.getElementById('sem-lancamentos');
+                        if (semLanc) semLanc.remove();
                         
                         const vBruto = parseFloat(payload.new.valor || 0);
                         const vComissao = parseFloat(payload.new.valor_comissao || (vBruto * taxaComissao));
@@ -385,7 +383,6 @@
                         colabChart.update();
                     }
                     
-                    // Escuta se o administrador alterou o status ou os valores de uma venda remotamente
                     if (payload.eventType === 'UPDATE' && payload.new.colaborador === COLABORADOR_ATUAL) {
                         const itemSelect = document.querySelector(`#item-${payload.new.id} select`);
                         if (itemSelect) {
