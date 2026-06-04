@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2 family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         .font-automotive { font-family: 'Orbitron', sans-serif; }
@@ -27,7 +27,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Estilo Nuvem Glassmorphism */
         .cloud-container {
             background: rgba(255, 255, 255, 0.04);
             backdrop-filter: blur(16px);
@@ -47,7 +46,6 @@
             outline: none;
         }
 
-        /* Botão Flutuante de Lançamento */
         .float-btn {
             background: linear-gradient(135deg, #a855f7, #00d4ff);
             box-shadow: 0 8px 24px rgba(0, 212, 255, 0.3), inset 0 1px 1px rgba(255,255,255,0.3);
@@ -58,7 +56,6 @@
             box-shadow: 0 12px 28px rgba(168, 85, 247, 0.5);
         }
 
-        /* Modal Blur */
         .modal-blur {
             background: rgba(4, 2, 10, 0.6);
             backdrop-filter: blur(8px);
@@ -124,7 +121,7 @@
         </div>
 
         <div class="cloud-container rounded-2xl p-6">
-            <h3 class="text-xs uppercase tracking-widest text-white/50 font-bold mb-4">Histórico de Ganhos das Últimas Semanas</h3>
+            <h3 class="text-xs uppercase tracking-widest text-white/50 font-bold mb-4">Histórico de Ganhos por Período</h3>
             <div class="h-64 w-full">
                 <canvas id="colabChart"></canvas>
             </div>
@@ -188,14 +185,13 @@
     </div>
 
     <script>
-        
-        // CONFIGURAÇÕES SUPABASE - ALTERE COM SUAS CREDENCIAIS REAIS
+        // CONFIGURAÇÕES SUPABASE
         const SUPABASE_URL = "https://fxetjbrwsjyjpsvlbrdf.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_A4meeM1XgSfvr3Lr2mvYxg_4iHskcyU";
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Nome fixado para o escopo do colaborador logado nesta tela
+        // Identificador fixo do Colaborador logado nesta sessão
         const COLABORADOR_ATUAL = "Rodrigo Silva";
         const taxaComissao = 0.30; 
 
@@ -205,7 +201,6 @@
         let totalServicos = 0;
         let colabChart;
 
-        // Inicializador de Recursos
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('nome-colaborador').innerText = COLABORADOR_ATUAL;
             inicializarGrafico();
@@ -220,7 +215,6 @@
             document.getElementById('preview-comissao').innerText = preview.replace('.', ',');
         });
 
-        // Funções de abertura e fechamento do modal flutuante
         function openModalLançamento() {
             document.getElementById('lançamentoModal').classList.remove('hidden');
         }
@@ -230,22 +224,20 @@
             document.getElementById('preview-comissao').innerText = "0.00";
         }
 
-        // BUSCAR DADOS INICIAIS DO BANCO DE DADOS
+        // BUSCAR DADOS INICIAIS DA TABELA DE VENDAS
         async function carregarDadosIniciais() {
             try {
-                // Busca todos os lançamentos do colaborador logado
                 const { data, error } = await _supabase
-                    .from('producao')
+                    .from('vendas')
                     .select('*')
                     .eq('colaborador', COLABORADOR_ATUAL)
-                    .order('created_at', { ascending: false });
+                    .order('criado_em', { ascending: false });
 
                 if (error) throw error;
 
                 document.getElementById('status-banco').className = "text-green-400 font-bold";
                 document.getElementById('status-banco').innerText = "● Supabase Conectado";
 
-                // Reset de contadores globais antes da computação estruturada
                 totalProduzido = 0;
                 totalComissao = 0;
                 totalServicos = 0;
@@ -253,13 +245,31 @@
                 const historicoContainer = document.getElementById('historico-lançamentos');
                 historicoContainer.innerHTML = '';
 
+                // Estrutura para agrupar gráfico dinamicamente por dia/semana
+                const ganhosAgrupados = { 'Dom-Ter': 0, 'Qua-Qui': 0, 'Sex-Sáb': 0, 'Hoje': 0 };
+                const hoje = new Date().toDateString();
+
                 if(data && data.length > 0) {
                     document.getElementById('sem-lancamentos')?.remove();
                     
                     data.forEach(item => {
-                        totalProduzido += parseFloat(item.valor_bruto || 0);
-                        totalComissao += parseFloat(item.valor_comissao || 0);
+                        const valorBruto = parseFloat(item.valor || 0);
+                        const comissaoItem = parseFloat(item.valor_comissao || (valorBruto * taxaComissao));
+
+                        totalProduzido += valorBruto;
+                        totalComissao += comissaoItem;
                         totalServicos++;
+
+                        // Processamento lógico para popular o gráfico dinamicamente
+                        const dataItem = new Date(item.criado_em);
+                        if (dataItem.toDateString() === hoje) {
+                            ganhosAgrupados['Hoje'] += comissaoItem;
+                        } else {
+                            const diaSemana = dataItem.getDay(); // 0 = Domingo, 6 = Sábado
+                            if (diaSemana >= 0 && diaSemana <= 2) ganhosAgrupados['Dom-Ter'] += comissaoItem;
+                            else if (diaSemana >= 3 && diaSemana <= 4) ganhosAgrupados['Qua-Qui'] += comissaoItem;
+                            else if (diaSemana >= 5 && diaSemana <= 6) ganhosAgrupados['Sex-Sáb'] += comissaoItem;
+                        }
 
                         renderizarItemLista(item, false);
                     });
@@ -269,8 +279,13 @@
 
                 atualizarCardsTela();
                 
-                // Atualiza a barra da semana atual do gráfico com a comissão calculada
-                colabChart.data.datasets[0].data[3] = totalComissao;
+                // Aplica os dados reais agregados no gráfico
+                colabChart.data.datasets[0].data = [
+                    ganhosAgrupados['Dom-Ter'],
+                    ganhosAgrupados['Qua-Qui'],
+                    ganhosAgrupados['Sex-Sáb'],
+                    ganhosAgrupados['Hoje']
+                ];
                 colabChart.update();
 
             } catch (err) {
@@ -280,7 +295,7 @@
             }
         }
 
-        // SALVAR LANÇAMENTO REAL NO SUPABASE
+        // SALVAR LANÇAMENTO REAL NA TABELA DE VENDAS
         async function salvarLançamentoColaborador(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-enviar');
@@ -295,15 +310,15 @@
 
             try {
                 const { error } = await _supabase
-                    .from('producao')
+                    .from('vendas')
                     .insert([{
                         colaborador: COLABORADOR_ATUAL,
-                        categoria: categoria,
-                        nome_item: nome,
-                        valor_bruto: valorBruto,
+                        tipo: categoria,
+                        nome: nome,
+                        valor: valorBruto,
                         valor_comissao: comissaoGanha,
-                        identificacao: clienteInfo,
-                        status: "Concluído" // Valor padrão inicial
+                        cliente: clienteInfo,
+                        status: "Concluído"
                     }]);
 
                 if (error) throw error;
@@ -317,17 +332,16 @@
             }
         }
 
-        // FUNÇÃO ADICIONAL: ATUALIZAR STATUS NO BANCO VIA SELECT DO CARD
+        // ATUALIZAR STATUS NO BANCO VIA SELECT DO CARD
         async function atualizarStatusServico(id, novoStatus) {
             try {
                 const { error } = await _supabase
-                    .from('producao')
+                    .from('vendas')
                     .update({ status: novoStatus })
                     .eq('id', id);
 
                 if (error) throw error;
                 
-                // Feedback visual temporário de sucesso na borda do item modificado
                 const elemento = document.getElementById(`item-${id}`);
                 if (elemento) {
                     elemento.classList.add('border-purple-500/50');
@@ -335,38 +349,41 @@
                 }
             } catch (err) {
                 alert("Erro ao atualizar status no banco: " + err.message);
-                carregarDadosIniciais(); // Restaura o estado da tela em caso de falhas de comunicação
+                carregarDadosIniciais(); 
             }
         }
 
-        // ESCUTA EM TEMPO REAL COMPLETA (INSERT E UPDATE INTEGRADOS COM O ADMIN)
-        function inscribirRealtime() {
+        // ESCUTA EM TEMPO REAL COMPLETA (COMPATÍVEL COM O PAINEL ADMIN)
+        function inscreverRealtime() {
             _supabase
-                .channel('producao_colaborador')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'producao' }, payload => {
+                .channel('vendas_colaborador')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'vendas' }, payload => {
                     
-                    // Cenário 1: Novo lançamento criado (Disparado por você ou pelo Admin apontado para você)
+                    // Se um novo item for inserido para este colaborador
                     if (payload.eventType === 'INSERT' && payload.new.colaborador === COLABORADOR_ATUAL) {
                         document.getElementById('sem-lancamentos')?.remove();
                         
-                        totalProduzido += parseFloat(payload.new.valor_bruto || 0);
-                        totalComissao += parseFloat(payload.new.valor_comissao || 0);
+                        const vBruto = parseFloat(payload.new.valor || 0);
+                        const vComissao = parseFloat(payload.new.valor_comissao || (vBruto * taxaComissao));
+
+                        totalProduzido += vBruto;
+                        totalComissao += vComissao;
                         totalServicos += 1;
 
                         atualizarCardsTela();
                         renderizarItemLista(payload.new, true);
 
-                        colabChart.data.datasets[0].data[3] += parseFloat(payload.new.valor_comissao || 0);
+                        // Incrementa o card de hoje no gráfico em tempo real
+                        colabChart.data.datasets[0].data[3] += vComissao;
                         colabChart.update();
                     }
                     
-                    // Cenário 2: Atualização de registro (Status alterado aqui ou diretamente no painel admin)
+                    // Se o admin ou faturamento alterar o status remotamente
                     if (payload.eventType === 'UPDATE' && payload.new.colaborador === COLABORADOR_ATUAL) {
                         const itemSelect = document.querySelector(`#item-${payload.new.id} select`);
                         if (itemSelect) {
                             itemSelect.value = payload.new.status || 'Concluído';
                             
-                            // Remove classes antigas de cores de texto para reinserir com precisão
                             itemSelect.className = itemSelect.className.replace(/text-(emerald|yellow|red)-400/g, '').trim();
                             
                             const statusModificado = payload.new.status;
@@ -374,7 +391,6 @@
                             else if (statusModificado === 'Em Andamento') itemSelect.classList.add('text-yellow-400');
                             else itemSelect.classList.add('text-red-400');
                         } else {
-                            // Caso a linha não esteja renderizada por qualquer motivo, atualiza o histórico completo
                             carregarDadosIniciais();
                         }
                     }
@@ -382,7 +398,6 @@
                 .subscribe();
         }
 
-        // Funções Auxiliares de Interface
         function atualizarCardsTela() {
             document.getElementById('card-total-produzido').innerText = `R$ ${totalProduzido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('card-comissao').innerText = `R$ ${totalComissao.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
@@ -394,8 +409,9 @@
             const classeAnimacao = animar ? 'animate-pulse border-purple-500/40 bg-black/50' : 'border-white/5 bg-black/30';
             
             const statusAtual = item.status || 'Concluído';
+            const valorBruto = parseFloat(item.valor || 0);
+            const valorComissao = parseFloat(item.valor_comissao || (valorBruto * taxaComissao));
             
-            // Retorna dinamicamente a cor da fonte correspondente ao status carregado
             const obterCorStatus = (status) => {
                 if (status === 'Concluído') return 'text-emerald-400';
                 if (status === 'Em Andamento') return 'text-yellow-400';
@@ -405,10 +421,10 @@
             const novoItemHTML = `
                 <div id="item-${item.id}" class="p-4 border rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-all ${classeAnimacao}">
                     <div>
-                        <span class="text-cyan-400 font-bold">${item.categoria === 'Serviço' ? '🚗 Serviço' : '📦 Produto'}</span>
-                        <h4 class="text-sm font-bold mt-0.5">${item.nome_item}</h4>
-                        <p class="text-white/40">Valor Total: R$ ${parseFloat(item.valor_bruto).toFixed(2).replace('.', ',')} | <span class="text-purple-400 font-semibold">Sua Comissão (30%): R$ ${parseFloat(item.valor_comissao).toFixed(2).replace('.', ',')}</span></p>
-                        <p class="text-[10px] text-white/20 mt-0.5">Ref: ${item.identificacao}</p>
+                        <span class="text-cyan-400 font-bold">${item.tipo === 'Serviço' ? '🚗 Serviço' : '📦 Produto'}</span>
+                        <h4 class="text-sm font-bold mt-0.5">${item.nome}</h4>
+                        <p class="text-white/40">Valor Total: R$ ${valorBruto.toFixed(2).replace('.', ',')} | <span class="text-purple-400 font-semibold">Sua Comissão (30%): R$ ${valorComissao.toFixed(2).replace('.', ',')}</span></p>
+                        <p class="text-[10px] text-white/20 mt-0.5">Ref: ${item.cliente}</p>
                     </div>
                     
                     <div class="flex items-center gap-2 self-end sm:self-center bg-black/40 p-1.5 rounded-xl border border-white/5">
@@ -429,10 +445,10 @@
             colabChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana Atual'],
+                    labels: ['Dom-Ter', 'Qua-Qui', 'Sex-Sáb', 'Hoje'],
                     datasets: [{
                         label: 'Minha Comissão (R$)',
-                        data: [280, 420, 310, 0], 
+                        data: [0, 0, 0, 0], 
                         backgroundColor: 'rgba(168, 85, 247, 0.4)',
                         borderColor: '#a855f7',
                         borderWidth: 2,
