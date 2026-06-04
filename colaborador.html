@@ -243,7 +243,7 @@
         const { data, error } = await _supabase
     .from('vendas')
     .select('*')
-    .eq('nome_colaborador', COLABORADOR_ATUAL) // Mude aqui para o nome real
+    .eq('nome_colaborador', Myke) // Mude aqui para o nome real
     .order('criado_em', { ascending: false });
 
         // ... (resto da lógica de renderização igual ao que você já tem)
@@ -282,7 +282,7 @@
                 const { error } = await _supabase
                     .from('vendas')
                     .insert([{
-                        colaborador: COLABORADOR_ATUAL,
+                        colaborador: Myke,
                         tipo: categoria,
                         nome: nome,
                         valor: valorBruto,
