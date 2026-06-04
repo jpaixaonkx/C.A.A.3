@@ -891,25 +891,30 @@
         }
 
         // ESCUTA GLOBAL DOS GATILHOS REALTIME (SEM REFRESH DA PÁGINA)
-        function ativarEscutasEmTempoReal() {
-            _supabase.channel('public-realtime-ceramink')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios' }, () => { carregarClientesAdmin().then(() => carregarListaChatUsuarios()); })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'colaboradores' }, () => { carregarColaboradoresAdmin(); })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'agenda' }, () => { carregarAgendaAdmin(); })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'servicos_produtos' }, () => { carregarCatalogoAdmin(); })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'vendas' }, () => { carregarVendasAdmin(); })
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens_chat' }, (payload) => {
-                    if (usuarioChatAtivo === payload.new.usuario_id) {
-                        abrirChatDireto(usuarioChatAtivo);
-                    } else {
-                        const badgeNode = document.getElementById(`badge-user-${payload.new.usuario_id}`);
-                        if(badgeNode) badgeNode.classList.remove('hidden');
-                        const chatGeneralBadge = document.getElementById('chat-badge');
-                        if(chatGeneralBadge) chatGeneralBadge.classList.remove('hidden');
-                    }
-                })
-                .subscribe();
-        }
+        // Procure por esta função dentro do seu admin.html e garanta que ela está assim:
+function ativarEscutasEmTempoReal() {
+    _supabase.channel('public-realtime-ceramink')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios' }, (payload) => { 
+            console.log("Mudança em usuários detectada!", payload);
+            // Recarrega a lista da memória e atualiza a interface e o chat
+            carregarClientesAdmin().then(() => carregarListaChatUsuarios()); 
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'colaboradores' }, () => { carregarColaboradoresAdmin(); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'agenda' }, () => { carregarAgendaAdmin(); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'servicos_produtos' }, () => { carregarCatalogoAdmin(); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'vendas' }, () => { carregarVendasAdmin(); })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens_chat' }, (payload) => {
+            if (usuarioChatAtivo === payload.new.usuario_id) {
+                abrirChatDireto(usuarioChatAtivo);
+            } else {
+                const badgeNode = document.getElementById(`badge-user-${payload.new.usuario_id}`);
+                if(badgeNode) badgeNode.classList.remove('hidden');
+                const chatGeneralBadge = document.getElementById('chat-badge');
+                if(chatGeneralBadge) chatGeneralBadge.classList.remove('hidden');
+            }
+        })
+        .subscribe();
+}
 
         // Gráfico Fluido Dinâmico do Painel Executivo
         let chartInstance = null;
