@@ -127,7 +127,7 @@
                 // 2. Coleta as regras do usuário logado diretamente da tabela pública
                 const { data: perfilUsuario, error: dbError } = await _supabase
                     .from('usuarios')
-                    .select('regra')
+                    .select('*')
                     .eq('id', authData.user.id)
                     .maybeSingle();
 
