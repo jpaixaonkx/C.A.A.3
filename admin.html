@@ -4,26 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ceramink - Painel Administrativo</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #030303;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #060608;
             color: #ffffff;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 212, 255, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.04) 0px, transparent 50%);
         }
 
+        /* Efeito 3D nos Botões */
+        .btn-3d {
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 0px 0px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        .btn-3d:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0px 0px rgba(0, 0, 0, 0.4), 0 12px 20px rgba(0, 0, 0, 0.4);
+        }
+        .btn-3d:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Estilo Específico para Botão Cyan 3D */
+        .btn-3d-cyan {
+            background: linear-gradient(135deg, #00e5ff, #00b0ff);
+            border-bottom: 4px solid #0081cb;
+        }
+        .btn-3d-cyan:active { border-bottom-width: 1px; }
+
+        /* Estilo Específico para Botão Purple 3D */
+        .btn-3d-purple {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            border-bottom: 4px solid #5b21b6;
+        }
+        .btn-3d-purple:active { border-bottom-width: 1px; }
+
+        /* Sidebar Minimizado Computador */
         .sidebar-minimized {
-            width: 80px !important;
+            width: 88px !important;
         }
         .sidebar-minimized .hide-minimized {
             display: none !important;
@@ -34,74 +62,79 @@
             padding-right: 0 !important;
         }
 
+        /* Glassmorphism Flutuante */
+        .glass-panel {
+            background: rgba(13, 13, 18, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
         /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.3); }
+
+        /* Menu de Ações Flutuantes */
+        #fab-menu {
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform: scale(0) translateY(40px);
+            opacity: 0;
         }
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 212, 255, 0.3);
+        #fab-menu.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
         }
     </style>
 </head>
-<body class="overflow-x-hidden">
+<body class="overflow-x-hidden min-h-screen flex flex-col">
 
-    <!-- BACKDROP SIDEBAR MOBILE -->
-    <div id="sidebarBackdrop" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden"></div>
+    <div id="sidebarBackdrop" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/70 backdrop-blur-md z-40 hidden lg:hidden"></div>
 
-    <div class="flex min-h-screen">
+    <div class="flex flex-1 min-h-screen">
         
-        <!-- SIDEBAR / DRAWER -->
-        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-neutral-950 border-r border-white/5 transition-all duration-300 transform -translate-x-full lg:translate-x-0 lg:static">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col w-68 bg-neutral-950/90 backdrop-blur-xl border-r border-white/5 transition-all duration-300 transform -translate-x-full lg:translate-x-0 lg:static m-0 lg:m-4 lg:rounded-2xl lg:h-[calc(100vh-2rem)] shadow-2xl">
             
-            <!-- Logo Brand -->
             <div class="flex items-center justify-between h-20 px-6 border-b border-white/5">
                 <div class="flex items-center gap-3 center-minimized w-full">
-                    <div class="w-9 h-9 bg-cyan-500 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,0.3)]">
-                        <i class="fa-solid fa-bolt text-black font-black"></i>
+                    <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(0,212,255,0.4)] border-b-2 border-cyan-700">
+                        <i class="fa-solid fa-bolt text-black font-black text-lg"></i>
                     </div>
-                    <span class="font-bold tracking-wider text-sm font-mono hide-minimized uppercase bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">Ceramink</span>
+                    <span class="font-black tracking-widest text-base font-mono hide-minimized uppercase bg-gradient-to-r from-white via-neutral-200 to-neutral-500 bg-clip-text text-transparent">Ceramink</span>
                 </div>
-                <button onclick="toggleSidebar(false)" class="lg:hidden p-2 text-white/50 hover:text-white">
+                <button onclick="toggleSidebar(false)" class="lg:hidden p-2 text-white/50 hover:text-white rounded-xl hover:bg-white/5">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <!-- Navegação de Abas -->
-            <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
-                <button onclick="switchTab('dashboard', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 bg-cyan-500 text-black shadow-[0_4px_12px_rgba(0,212,255,0.15)] center-minimized">
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                <button onclick="switchTab('dashboard', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 bg-gradient-to-r from-cyan-500 to-cyan-600 text-black shadow-[0_4px_15px_rgba(0,212,255,0.25)] border-b-2 border-cyan-700 center-minimized active:translate-y-0.5">
                     <i class="fa-solid fa-chart-pie text-sm"></i>
                     <span class="hide-minimized">Dashboard Executivo</span>
                 </button>
 
-                <button onclick="switchTab('agenda', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 center-minimized">
+                <button onclick="switchTab('agenda', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-xs font-bold tracking-wide text-white/60 hover:text-white hover:bg-white/5 border-b-2 border-transparent transition-all duration-200 center-minimized active:translate-y-0.5">
                     <i class="fa-solid fa-calendar-days text-sm"></i>
                     <span class="hide-minimized">Agenda Integrada</span>
                 </button>
 
-                <button onclick="switchTab('clientes', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 center-minimized">
+                <button onclick="switchTab('clientes', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-xs font-bold tracking-wide text-white/60 hover:text-white hover:bg-white/5 border-b-2 border-transparent transition-all duration-200 center-minimized active:translate-y-0.5">
                     <i class="fa-solid fa-users text-sm"></i>
                     <span class="hide-minimized">Clientes do App</span>
                 </button>
 
-                <button onclick="switchTab('colaboradores', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 center-minimized">
+                <button onclick="switchTab('colaboradores', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-xs font-bold tracking-wide text-white/60 hover:text-white hover:bg-white/5 border-b-2 border-transparent transition-all duration-200 center-minimized active:translate-y-0.5">
                     <i class="fa-solid fa-user-tie text-sm"></i>
                     <span class="hide-minimized">Colaboradores</span>
                 </button>
 
-                <button onclick="switchTab('catalogo', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 center-minimized">
+                <button onclick="switchTab('catalogo', this)" class="tab-btn w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-xs font-bold tracking-wide text-white/60 hover:text-white hover:bg-white/5 border-b-2 border-transparent transition-all duration-200 center-minimized active:translate-y-0.5">
                     <i class="fa-solid fa-box-open text-sm"></i>
                     <span class="hide-minimized">Produtos & Serviços</span>
                 </button>
 
-                <button onclick="switchTab('chat', this)" class="tab-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-semibold tracking-wide text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200 center-minimized">
+                <button onclick="switchTab('chat', this)" class="tab-btn w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-xs font-bold tracking-wide text-white/60 hover:text-white hover:bg-white/5 border-b-2 border-transparent transition-all duration-200 center-minimized active:translate-y-0.5">
                     <div class="flex items-center gap-3.5">
                         <i class="fa-solid fa-comments text-sm"></i>
                         <span class="hide-minimized">Central de Atendimento</span>
@@ -110,171 +143,156 @@
                 </button>
             </nav>
 
-            <!-- Rodapé da Sidebar -->
             <div class="p-4 border-t border-white/5">
-                <button onclick="window.location.href='index.html'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 transition-colors center-minimized">
+                <button onclick="window.location.href='index.html'" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10 transition-colors center-minimized">
                     <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
                     <span class="hide-minimized">Sair do Painel</span>
                 </button>
             </div>
         </aside>
 
-        <!-- CONTEÚDO PRINCIPAL (MAIN CONTENT) -->
-        <div class="flex-1 flex flex-col min-w-0">
+        <div class="flex-1 flex flex-col min-w-0 lg:h-[calc(100vh-1rem)]">
             
-            <!-- TOPBAR HEADER -->
-            <header class="h-20 border-b border-white/5 bg-neutral-950/50 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30">
+            <header class="h-20 bg-neutral-950/40 backdrop-blur-xl px-6 flex items-center justify-between sticky top-0 z-30 m-0 lg:mt-4 lg:mr-4 lg:mb-2 lg:rounded-2xl border border-white/5 shadow-xl">
                 <div class="flex items-center gap-4">
-                    <button onclick="toggleSidebar()" class="p-2 rounded-lg bg-white/5 border border-white/5 text-white/80 hover:text-white transition-colors">
+                    <button onclick="toggleSidebar()" class="p-2.5 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:text-white transition-all active:scale-95 cursor-pointer">
                         <i id="minimizeIcon" class="fa-solid fa-bars-staggered"></i>
                     </button>
-                    <h1 class="text-sm font-bold tracking-wide text-white/90 hidden sm:block">Painel Administrativo Geral</h1>
+                    <h1 class="text-xs font-extrabold uppercase tracking-widest text-white/40 hidden sm:block">Painel de Controle</h1>
                 </div>
 
-                <!-- Botões de Ações Rápidas -->
                 <div class="flex items-center gap-3">
-                    <button onclick="openVendaModal('venda')" class="bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-cyan-500 hover:text-black transition-all duration-200 cursor-pointer">
+                    <button onclick="openVendaModal('venda')" class="btn-3d btn-3d-cyan text-black px-4 py-2.5 rounded-xl text-xs font-black cursor-pointer hidden sm:block">
                         <i class="fa-solid fa-cart-plus mr-1.5"></i> Registrar Venda
                     </button>
-                    <button onclick="openVendaModal('catalogo')" class="bg-purple-500/10 border border-purple-500/20 text-purple-400 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-purple-500 hover:text-white transition-all duration-200 cursor-pointer">
-                        <i class="fa-solid fa-plus mr-1.5"></i> Novo Item Catálogo
+                    <button onclick="openVendaModal('catalogo')" class="btn-3d btn-3d-purple text-white px-4 py-2.5 rounded-xl text-xs font-black cursor-pointer hidden sm:block">
+                        <i class="fa-solid fa-plus mr-1.5"></i> Novo Item
                     </button>
                 </div>
             </header>
 
-            <!-- CONTAINER DE TELAS DINÂMICAS -->
-            <main class="flex-1 p-6 lg:p-8 overflow-y-auto max-w-[1600px] w-full mx-auto">
+            <main class="flex-1 p-4 lg:p-6 overflow-y-auto max-w-[1600px] w-full mx-auto pb-24">
                 
-                <!-- 1. TELA: DASHBOARD -->
                 <div id="tab-dashboard" class="tab-content space-y-6">
-                    <!-- Cards de Métricas em Tempo Real -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+                        <div class="glass-panel rounded-2xl p-5 flex items-center justify-between shadow-lg">
                             <div>
-                                <p class="text-xs text-white/40 font-medium">Faturamento (Hoje)</p>
-                                <h3 id="realtime-faturamento-dia" class="text-xl font-bold mt-1 font-mono text-cyan-400">R$ 0,00</h3>
+                                <p class="text-[11px] text-white/40 font-bold uppercase tracking-wider">Faturamento (Hoje)</p>
+                                <h3 id="realtime-faturamento-dia" class="text-2xl font-black mt-1 font-mono text-cyan-400">R$ 0,00</h3>
                             </div>
-                            <div class="w-10 h-10 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-400 border border-cyan-500/10"><i class="fa-solid fa-wallet"></i></div>
+                            <div class="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-400 border border-cyan-500/20 shadow-inner"><i class="fa-solid fa-wallet text-lg"></i></div>
                         </div>
 
-                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+                        <div class="glass-panel rounded-2xl p-5 flex items-center justify-between shadow-lg">
                             <div>
-                                <p class="text-xs text-white/40 font-medium">Atendimentos na Grade</p>
-                                <h3 id="realtime-servicos-dia" class="text-xl font-bold mt-1 text-white/90">0 Lançamentos</h3>
+                                <p class="text-[11px] text-white/40 font-bold uppercase tracking-wider">Atendimentos Grade</p>
+                                <h3 id="realtime-servicos-dia" class="text-2xl font-black mt-1 text-white/90">0 Lançamentos</h3>
                             </div>
-                            <div class="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-400 border border-purple-500/10"><i class="fa-solid fa-calendar-check"></i></div>
+                            <div class="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-400 border border-purple-500/20 shadow-inner"><i class="fa-solid fa-calendar-check text-lg"></i></div>
                         </div>
 
-                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+                        <div class="glass-panel rounded-2xl p-5 flex items-center justify-between shadow-lg">
                             <div>
-                                <p class="text-xs text-white/40 font-medium">Clientes no Ecossistema</p>
-                                <h3 id="realtime-clientes-total" class="text-xl font-bold mt-1 text-white/90">0 Clientes</h3>
+                                <p class="text-[11px] text-white/40 font-bold uppercase tracking-wider">Clientes no App</p>
+                                <h3 id="realtime-clientes-total" class="text-2xl font-black mt-1 text-white/90">0 Clientes</h3>
                             </div>
-                            <div class="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 border border-amber-500/10"><i class="fa-solid fa-users"></i></div>
+                            <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 border border-amber-500/20 shadow-inner"><i class="fa-solid fa-users text-lg"></i></div>
                         </div>
 
-                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+                        <div class="glass-panel rounded-2xl p-5 flex items-center justify-between shadow-lg">
                             <div>
-                                <p class="text-xs text-white/40 font-medium">Status do Servidor</p>
-                                <h3 class="text-xs font-bold mt-1.5 text-emerald-400 flex items-center gap-1.5"><span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span> ONLINE (REALTIME)</h3>
+                                <p class="text-[11px] text-white/40 font-bold uppercase tracking-wider">Status do Fluxo</p>
+                                <h3 class="text-xs font-black mt-2.5 text-emerald-400 flex items-center gap-2"><span class="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_10px_#34d399]"></span> REALTIME ON</h3>
                             </div>
-                            <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 border border-emerald-500/10"><i class="fa-solid fa-network-wired"></i></div>
+                            <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-inner"><i class="fa-solid fa-network-wired text-lg"></i></div>
                         </div>
                     </div>
 
-                    <!-- Gráfico & Monitor de Pátio -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Painel Gráfico Executivo -->
-                        <div class="lg:col-span-2 bg-neutral-950 border border-white/5 rounded-2xl p-6 flex flex-col">
+                        <div class="lg:col-span-2 glass-panel rounded-2xl p-6 flex flex-col shadow-xl">
                             <div class="flex items-center justify-between mb-6">
                                 <div>
-                                    <h2 class="text-sm font-bold text-white/90">Curva de Faturamento Líquido</h2>
+                                    <h2 class="text-sm font-black text-white/90 uppercase tracking-wide">Curva de Faturamento Líquido</h2>
                                     <p class="text-[11px] text-white/40 mt-0.5">Visão automatizada baseada nas vendas salvas no banco</p>
                                 </div>
-                                <div class="flex gap-1.5 bg-white/5 p-1 rounded-lg border border-white/5">
-                                    <button onclick="changeChartPeriod(7)" class="text-[10px] px-2.5 py-1 rounded-md font-bold text-white/60 hover:text-white">7D</button>
-                                    <button onclick="changeChartPeriod(30)" class="text-[10px] px-2.5 py-1 rounded-md font-bold bg-cyan-500 text-black">30D</button>
+                                <div class="flex gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
+                                    <button onclick="changeChartPeriod(7)" class="text-[10px] px-3 py-1.5 rounded-lg font-bold text-white/60 hover:text-white transition-all">7D</button>
+                                    <button onclick="changeChartPeriod(30)" class="text-[10px] px-3 py-1.5 rounded-lg font-black bg-cyan-500 text-black shadow-md">30D</button>
                                 </div>
                             </div>
-                            <div class="flex-1 min-h-[260px] relative">
+                            <div class="flex-1 min-h-[280px] relative">
                                 <canvas id="dashboardChart"></canvas>
                             </div>
                         </div>
 
-                        <!-- Monitor Realtime de Carros no Pátio -->
-                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-6 flex flex-col">
+                        <div class="glass-panel rounded-2xl p-6 flex flex-col shadow-xl">
                             <div class="mb-4">
-                                <h2 class="text-sm font-bold text-white/90"><i class="fa-solid fa-spinner text-cyan-400 mr-1 animate-spin"></i> Linha de Atendimento</h2>
+                                <h2 class="text-sm font-black text-white/90 uppercase tracking-wide"><i class="fa-solid fa-spinner text-cyan-400 mr-1.5 animate-spin"></i> Linha de Atendimento</h2>
                                 <p class="text-[11px] text-white/40 mt-0.5">Estágio de cura e lavagem atualizados pelo pátio</p>
                             </div>
-                            <div id="cards-atendimento-realtime" class="flex-1 overflow-y-auto space-y-3 max-h-[300px] pr-1">
-                                <!-- Preenchido dinamicamente por JS -->
-                            </div>
+                            <div id="cards-atendimento-realtime" class="flex-1 overflow-y-auto space-y-3 max-h-[320px] pr-1">
+                                </div>
                         </div>
                     </div>
 
-                    <!-- Painel Financeiro Detalhado -->
-                    <div class="bg-neutral-950 border border-white/5 rounded-2xl p-6">
-                        <h2 class="text-sm font-bold mb-4">Resumo Consolidado de Caixa</h2>
+                    <div class="glass-panel rounded-2xl p-6 shadow-xl">
+                        <h2 class="text-sm font-black mb-4 uppercase tracking-wide">Resumo Consolidado de Caixa</h2>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                            <div class="p-4 bg-black/40 rounded-xl border border-white/5 shadow-inner">
                                 <span class="text-[10px] uppercase font-bold text-white/40">Fechamento Hoje</span>
-                                <p id="fin-hoje" class="text-lg font-bold font-mono text-white/90 mt-1">R$ 0,00</p>
+                                <p id="fin-hoje" class="text-xl font-extrabold font-mono text-white/90 mt-1">R$ 0,00</p>
                             </div>
-                            <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                            <div class="p-4 bg-black/40 rounded-xl border border-white/5 shadow-inner">
                                 <span class="text-[10px] uppercase font-bold text-white/40">Últimos 7 dias</span>
-                                <p id="fin-semana" class="text-lg font-bold font-mono text-cyan-400 mt-1">R$ 0,00</p>
+                                <p id="fin-semana" class="text-xl font-extrabold font-mono text-cyan-400 mt-1">R$ 0,00</p>
                             </div>
-                            <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                            <div class="p-4 bg-black/40 rounded-xl border border-white/5 shadow-inner">
                                 <span class="text-[10px] uppercase font-bold text-white/40">Projeção Mensal (30D)</span>
-                                <p id="fin-mes" class="text-lg font-bold font-mono text-purple-400 mt-1">R$ 0,00</p>
+                                <p id="fin-mes" class="text-xl font-extrabold font-mono text-purple-400 mt-1">R$ 0,00</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. TELA: AGENDA INTEGRADA -->
                 <div id="tab-agenda" class="tab-content space-y-6 hidden">
                     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                        <!-- Formulário de Encaixe -->
-                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-6 h-fit">
-                            <h2 class="text-sm font-bold mb-4"><i class="fa-solid fa-calendar-plus text-cyan-400 mr-1"></i> Forçar Encaixe na Planilha</h2>
-                            <form onsubmit="adicionarDiretoNaPlanilha(e)" class="space-y-4">
+                        <div class="glass-panel rounded-2xl p-6 h-fit shadow-xl">
+                            <h2 class="text-sm font-black mb-4 uppercase tracking-wide"><i class="fa-solid fa-calendar-plus text-cyan-400 mr-1"></i> Forçar Encaixe na Planilha</h2>
+                            <form onsubmit="adicionarDiretoNaPlanilha(event)" class="space-y-4">
                                 <div>
-                                    <label class="text-[11px] text-white/50 block mb-1.5">Nome do Cliente</label>
-                                    <input type="text" id="agenda-nome" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    <label class="text-[11px] text-white/50 font-bold block mb-1.5">Nome do Cliente</label>
+                                    <input type="text" id="agenda-nome" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white transition-all">
                                 </div>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-[11px] text-white/50 block mb-1.5">Veículo (Modelo/Placa)</label>
-                                        <input type="text" id="agenda-carro" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">Veículo (Modelo/Placa)</label>
+                                        <input type="text" id="agenda-carro" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white transition-all">
                                     </div>
                                     <div>
-                                        <label class="text-[11px] text-white/50 block mb-1.5">Serviço Pretendido</label>
-                                        <input type="text" id="agenda-serv" required placeholder="Ex: Vitrificação" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">Serviço Pretendido</label>
+                                        <input type="text" id="agenda-serv" required placeholder="Ex: Vitrificação" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white transition-all">
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-[11px] text-white/50 block mb-1.5">Data</label>
-                                        <input type="date" id="agenda-data" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">Data</label>
+                                        <input type="date" id="agenda-data" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white transition-all">
                                     </div>
                                     <div>
-                                        <label class="text-[11px] text-white/50 block mb-1.5">Horário</label>
-                                        <input type="time" id="agenda-hora" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">Horário</label>
+                                        <input type="time" id="agenda-hora" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white transition-all">
                                     </div>
                                 </div>
-                                <button type="submit" class="w-full bg-cyan-500 text-black py-3 rounded-xl font-bold text-xs hover:shadow-[0_0_20px_rgba(0,212,255,0.2)] transition-all cursor-pointer">Salvar Atendimento</button>
+                                <button type="submit" class="w-full btn-3d btn-3d-cyan text-black py-3 rounded-xl font-black text-xs cursor-pointer mt-2">Salvar Atendimento</button>
                             </form>
                         </div>
 
-                        <!-- Lista Geral da Grade / Planilha -->
-                        <div class="xl:col-span-2 bg-neutral-950 border border-white/5 rounded-2xl p-6">
-                            <h2 class="text-sm font-bold mb-4">Histórico Completo da Grade</h2>
+                        <div class="xl:col-span-2 glass-panel rounded-2xl p-6 shadow-xl">
+                            <h2 class="text-sm font-black mb-4 uppercase tracking-wide">Histórico Completo da Grade</h2>
                             <div class="overflow-x-auto w-full">
                                 <table class="w-full text-left border-collapse min-w-[500px]">
                                     <thead>
-                                        <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/40">
+                                        <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/40 font-bold">
                                             <th class="p-3">Data/Hora</th>
                                             <th class="p-3">Cliente</th>
                                             <th class="p-3">Veículo</th>
@@ -283,97 +301,91 @@
                                         </tr>
                                     </thead>
                                     <tbody id="planilha-agenda-corpo" class="text-xs divide-y divide-white/5">
-                                        <!-- Injetado dinamicamente -->
-                                    </tbody>
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 3. TELA: CLIENTES DO APP -->
                 <div id="tab-clientes" class="tab-content space-y-6 hidden">
-                    <div class="bg-neutral-950 border border-white/5 rounded-2xl p-6">
+                    <div class="glass-panel rounded-2xl p-6 shadow-xl">
                         <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
                             <div>
-                                <h2 class="text-sm font-bold">Base de Usuários Cadastrados</h2>
-                                <p class="text-xs text-white/40 mt-0.5">Clientes que possuem conta criada e ativa no aplicativo da Ceramink</p>
+                                <h2 class="text-sm font-black uppercase tracking-wide">Base de Usuários Cadastrados</h2>
+                                <p class="text-xs text-white/40 mt-0.5">Clientes cadastrados na plataforma e sincronizados com o Supabase</p>
                             </div>
                             <div class="relative max-w-xs w-full">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 text-xs"></i>
-                                <input type="text" oninput="searchClientes(this.value)" placeholder="Buscar cliente..." class="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs outline-none focus:border-cyan-400 text-white">
+                                <input type="text" oninput="searchClientes(this.value)" placeholder="Buscar cliente..." class="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs outline-none focus:border-cyan-400 text-white">
                             </div>
                         </div>
                         <div class="overflow-x-auto w-full">
                             <table class="w-full text-left border-collapse min-w-[600px]">
                                 <thead>
-                                    <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/40">
+                                    <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/40 font-bold">
                                         <th class="p-4">Nome Oficial</th>
                                         <th class="p-4">E-mail Cadastrado</th>
                                         <th class="p-4">WhatsApp / Data Cad.</th>
                                         <th class="p-4 text-right">Ação</th>
                                     </tr>
                                 </thead>
-                                <tbody id="clientes-table-body" class="text-xs">
-                                    <!-- Injetado dinamicamente -->
-                                </tbody>
+                                <tbody id="clientes-table-body" class="text-xs divide-y divide-white/5">
+                                    </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- 4. TELA: COLABORADORES -->
                 <div id="tab-colaboradores" class="tab-content space-y-6 hidden">
                     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                        <!-- Formulário de Cadastro -->
-                        <div class="bg-neutral-950 border border-white/5 rounded-2xl p-6 h-fit">
-                            <h2 class="text-sm font-bold mb-4"><i class="fa-solid fa-user-plus text-purple-400 mr-1"></i> Cadastrar Credencial Profissional</h2>
+                        <div class="glass-panel rounded-2xl p-6 h-fit shadow-xl">
+                            <h2 class="text-sm font-black mb-4 uppercase tracking-wide"><i class="fa-solid fa-user-plus text-purple-400 mr-1"></i> Cadastrar Credencial Profissional</h2>
                             <form onsubmit="handleCadastrarColaborador(event)" class="space-y-4">
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-[11px] text-white/50 block mb-1.5">Nome Completo</label>
-                                        <input type="text" id="colab-nome" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">Nome Completo</label>
+                                        <input type="text" id="colab-nome" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
                                     </div>
                                     <div>
-                                        <label class="text-[11px] text-white/50 block mb-1.5">E-mail Corporativo</label>
-                                        <input type="email" id="colab-email" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">E-mail Corporativo</label>
+                                        <input type="email" id="colab-email" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-[11px] text-white/50 block mb-1.5">Documento (CPF)</label>
-                                        <input type="text" id="colab-documento" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">Documento (CPF)</label>
+                                        <input type="text" id="colab-documento" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
                                     </div>
                                     <div>
-                                        <label class="text-[11px] text-white/50 block mb-1.5">WhatsApp Contato</label>
-                                        <input type="text" id="colab-whatsapp" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">WhatsApp Contato</label>
+                                        <input type="text" id="colab-whatsapp" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="text-[11px] text-white/50 block mb-1.5">Endereço de Residência</label>
-                                    <input type="text" id="colab-endereco" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    <label class="text-[11px] text-white/50 font-bold block mb-1.5">Endereço de Residência</label>
+                                    <input type="text" id="colab-endereco" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
                                 </div>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-[11px] text-white/50 block mb-1.5">Modelo Contratual / Remuneração</label>
-                                        <input type="text" id="colab-remuneracao" required placeholder="Ex: R$ 3.000 + Comissão" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">Modelo Contratual</label>
+                                        <input type="text" id="colab-remuneracao" required placeholder="Ex: R$ 3.000 + Comissões" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
                                     </div>
                                     <div>
-                                        <label class="text-[11px] text-white/50 block mb-1.5">Senha Provisória de Acesso</label>
-                                        <input type="password" id="colab-senha" required class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">Senha Provisória</label>
+                                        <input type="password" id="colab-senha" required class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
                                     </div>
                                 </div>
-                                <button type="submit" class="w-full bg-purple-500 text-white py-3 rounded-xl font-bold text-xs hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all cursor-pointer">Validar Credencial</button>
+                                <button type="submit" class="w-full btn-3d btn-3d-purple text-white py-3 rounded-xl font-black text-xs cursor-pointer mt-2">Validar Credencial</button>
                             </form>
                         </div>
 
-                        <!-- Lista de Funcionários Ativos -->
-                        <div class="xl:col-span-2 bg-neutral-950 border border-white/5 rounded-2xl p-6">
-                            <h2 class="text-sm font-bold mb-4">Colaboradores Vinculados</h2>
+                        <div class="xl:col-span-2 glass-panel rounded-2xl p-6 shadow-xl">
+                            <h2 class="text-sm font-black mb-4 uppercase tracking-wide">Colaboradores Vinculados</h2>
                             <div class="overflow-x-auto w-full">
                                 <table class="w-full text-left border-collapse min-w-[500px]">
                                     <thead>
-                                        <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/40">
+                                        <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/40 font-bold">
                                             <th class="p-3">Nome</th>
                                             <th class="p-3">E-mail</th>
                                             <th class="p-3">WhatsApp</th>
@@ -381,51 +393,40 @@
                                         </tr>
                                     </thead>
                                     <tbody id="colaboradores-table-body" class="text-xs divide-y divide-white/5">
-                                        <!-- Injetado dinamicamente -->
-                                    </tbody>
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 5. TELA: PRODUTOS & SERVIÇOS -->
                 <div id="tab-catalogo" class="tab-content space-y-6 hidden">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div>
-                            <h2 class="text-sm font-bold">Catálogo Geral da Loja</h2>
-                            <p class="text-xs text-white/40 mt-0.5">Vitrine em exposição na home e pátio para escolha direta do usuário</p>
-                        </div>
+                    <div>
+                        <h2 class="text-sm font-black uppercase tracking-wide">Catálogo Geral da Loja</h2>
+                        <p class="text-xs text-white/40 mt-0.5">Vitrine em exposição na home do aplicativo para escolha direta do usuário</p>
                     </div>
                     <div id="catalogo-items-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- Injetado dinamicamente -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- 6. TELA: CENTRAL DE CHAT -->
                 <div id="tab-chat" class="tab-content space-y-6 hidden">
-                    <div class="bg-neutral-950 border border-white/5 rounded-2xl h-[calc(100vh-14rem)] min-h-[450px] overflow-hidden grid grid-cols-1 md:grid-cols-3">
+                    <div class="glass-panel rounded-2xl h-[calc(100vh-14rem)] min-h-[460px] overflow-hidden grid grid-cols-1 md:grid-cols-3 shadow-2xl">
                         
-                        <!-- Lista de Usuários Lateral -->
-                        <div class="border-r border-white/5 flex flex-col overflow-y-auto p-4 space-y-2 bg-black/20">
-                            <h3 class="text-xs font-bold text-white/40 px-2 uppercase tracking-wider mb-2">Mensagens Ativas</h3>
+                        <div class="border-r border-white/5 flex flex-col overflow-y-auto p-4 space-y-2 bg-black/30">
+                            <h3 class="text-[11px] font-black text-white/40 px-2 uppercase tracking-wider mb-2">Mensagens Ativas</h3>
                             <div id="chat-usuarios-lista" class="space-y-1.5 flex-1 overflow-y-auto">
-                                <!-- Injetado dinamicamente -->
-                            </div>
+                                </div>
                         </div>
 
-                        <!-- Tela Interna do Chat Selecionado -->
-                        <div class="md:col-span-2 flex flex-col bg-neutral-950/40 relative">
-                            <!-- Container de Balões de Mensagens -->
+                        <div class="md:col-span-2 flex flex-col bg-black/10 relative">
                             <div id="chat-mensagens-container" class="flex-1 overflow-y-auto p-6 space-y-4 max-h-[calc(100vh-23rem)] min-h-[300px]">
                                 <div class="h-full flex items-center justify-center text-xs text-white/30">Selecione uma conversa ao lado para interagir</div>
                             </div>
 
-                            <!-- Barra Inferior de Input de Envio -->
-                            <div class="p-4 border-t border-white/5 bg-neutral-950">
+                            <div class="p-4 border-t border-white/5 bg-neutral-950/80">
                                 <form onsubmit="enviarMensagemAdmin(event)" class="flex gap-2">
-                                    <input type="text" id="chat-input-mensagem" placeholder="Digite uma mensagem oficial de resposta..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-cyan-400 text-white">
-                                    <button type="submit" class="w-12 h-12 bg-cyan-500 rounded-xl text-black font-bold flex items-center justify-center hover:shadow-[0_0_15px_rgba(0,212,255,0.2)] transition-all cursor-pointer">
+                                    <input type="text" id="chat-input-mensagem" placeholder="Digite uma mensagem oficial de resposta..." class="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-cyan-400 text-white">
+                                    <button type="submit" class="w-12 h-12 bg-cyan-500 rounded-xl text-black font-black flex items-center justify-center shadow-lg hover:bg-cyan-400 active:scale-95 transition-all cursor-pointer">
                                         <i class="fa-solid fa-paper-plane text-sm"></i>
                                     </button>
                                 </form>
@@ -439,12 +440,25 @@
         </div>
     </div>
 
-    <!-- MODAL DINÂMICO UNIFICADO: REGISTRAR VENDA / LANÇAR CATÁLOGO -->
-    <div id="vendaModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-neutral-950 border border-white/10 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl animate-fade-in">
-            <div class="p-5 border-b border-white/5 flex justify-between items-center bg-black/20">
-                <h3 id="modal-titulo" class="text-xs font-bold uppercase tracking-wider text-white/90">Lançamento</h3>
-                <button onclick="closeVendaModal()" class="w-7 h-7 bg-white/5 border border-white/5 rounded-lg flex items-center justify-center text-white/50 hover:text-white transition-colors cursor-pointer">
+    <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3 sm:hidden">
+        <div id="fab-menu" class="flex flex-col gap-2.5 items-end">
+            <button onclick="openVendaModal('catalogo'); toggleFabMenu();" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xl flex items-center gap-2 border-b-2 border-purple-700 active:scale-95 transition-all">
+                Lançar Item <i class="fa-solid fa-box-open"></i>
+            </button>
+            <button onclick="openVendaModal('venda'); toggleFabMenu();" class="bg-gradient-to-r from-cyan-400 to-cyan-500 text-black font-black text-xs py-2.5 px-4 rounded-xl shadow-xl flex items-center gap-2 border-b-2 border-cyan-700 active:scale-95 transition-all">
+                Registrar Venda <i class="fa-solid fa-cart-plus"></i>
+            </button>
+        </div>
+        <button onclick="toggleFabMenu()" id="fab-main-btn" class="w-14 h-14 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-[0_4px_20px_rgba(0,212,255,0.4)] text-xl border-b-4 border-black/40 active:border-b-0 active:translate-y-1 transition-all duration-150 cursor-pointer">
+            <i id="fab-icon" class="fa-solid fa-plus transition-transform duration-300"></i>
+        </button>
+    </div>
+
+    <div id="vendaModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="glass-panel w-full max-w-md rounded-2xl overflow-hidden shadow-2xl animate-fade-in">
+            <div class="p-5 border-b border-white/5 flex justify-between items-center bg-black/40">
+                <h3 id="modal-titulo" class="text-xs font-black uppercase tracking-wider text-white/90">Lançamento</h3>
+                <button onclick="closeVendaModal()" class="w-8 h-8 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white/50 hover:text-white transition-colors cursor-pointer">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
@@ -453,46 +467,43 @@
                 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[11px] text-white/50 block mb-1.5">Segmentação</label>
-                        <select id="venda-tipo" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white cursor-pointer">
+                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">Segmentação</label>
+                        <select id="venda-tipo" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white cursor-pointer">
                             <option value="Serviço" class="bg-neutral-900 text-white">Serviço</option>
                             <option value="Produto" class="bg-neutral-900 text-white">Produto</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[11px] text-white/50 block mb-1.5">Valor Estipulado (R$)</label>
-                        <input type="number" step="0.01" id="venda-valor" required placeholder="0.00" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white font-mono">
+                        <label class="text-[11px] text-white/50 font-bold block mb-1.5">Valor Estipulado (R$)</label>
+                        <input type="number" step="0.01" id="venda-valor" required placeholder="0.00" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white font-mono">
                     </div>
                 </div>
 
                 <div>
-                    <label class="text-[11px] text-white/50 block mb-1.5">Nome do Item / Serviço Aplicado</label>
-                    <input type="text" id="venda-nome" required placeholder="Ex: Vitrificação de Pintura" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                    <label class="text-[11px] text-white/50 font-bold block mb-1.5">Nome do Item / Serviço Aplicado</label>
+                    <input type="text" id="venda-nome" required placeholder="Ex: Vitrificação de Pintura" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
                 </div>
 
                 <div id="container-cliente">
-                    <label class="text-[11px] text-white/50 block mb-1.5">Nome ou CPF do Comprador/Cliente</label>
-                    <input type="text" id="venda-cliente" placeholder="Identificação do cliente" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
+                    <label class="text-[11px] text-white/50 font-bold block mb-1.5">Nome ou CPF do Comprador/Cliente</label>
+                    <input type="text" id="venda-cliente" placeholder="Identificação do cliente" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs outline-none focus:border-cyan-400 text-white">
                 </div>
 
                 <div class="pt-2 flex justify-end gap-2.5">
-                    <button type="button" onclick="closeVendaModal()" class="px-4 py-2.5 rounded-xl border border-white/10 text-white/60 hover:text-white text-xs font-semibold cursor-pointer">Cancelar</button>
-                    <button type="submit" id="btn-submit-modal" class="px-5 py-2.5 rounded-xl bg-cyan-500 text-black text-xs font-bold hover:shadow-[0_0_15px_rgba(0,212,255,0.2)] transition-all cursor-pointer">Salvar Entrada</button>
+                    <button type="button" onclick="closeVendaModal()" class="px-4 py-2.5 rounded-xl border border-white/10 text-white/60 hover:text-white text-xs font-bold cursor-pointer">Cancelar</button>
+                    <button type="submit" id="btn-submit-modal" class="px-5 py-2.5 rounded-xl bg-cyan-500 text-black text-xs font-black shadow-lg hover:bg-cyan-400 transition-all cursor-pointer">Salvar Entrada</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ==========================================
-         LÓGICA DE PROGRAMAÇÃO INTEGRADA E CORRIGIDA
-         ========================================== -->
     <script>
         // Configurações do Supabase (Insira as credenciais reais do seu projeto aqui)
         const SUPABASE_URL = "SUA_SUPABASE_URL"; 
         const SUPABASE_KEY = "SUA_SUPABASE_ANON_KEY";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ESTADO GLOBAL DA APLICAÇÃO (Sem duplicações ou conflitos de redeclaração)
+        // ESTADO GLOBAL ÚNICO (Sem duplicações ou variáveis de redeclaração de bloco)
         var listaClientes = [];
         var listaColaboradores = [];
         var listaAgenda = [];
@@ -508,20 +519,24 @@
             if (activeTab) activeTab.classList.remove('hidden');
 
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-cyan-500', 'text-black', 'shadow-[0_4px_12px_rgba(0,212,255,0.15)]');
-                btn.classList.add('text-white/60', 'hover:text-white', 'hover:bg-white/5');
+                btn.classList.remove('bg-gradient-to-r', 'from-cyan-500', 'to-cyan-600', 'text-black', 'shadow-[0_4px_15px_rgba(0,212,255,0.25)]', 'border-cyan-700');
+                btn.classList.add('text-white/60', 'hover:text-white', 'hover:bg-white/5', 'border-transparent');
             });
 
             if (buttonElement) {
-                buttonElement.classList.remove('text-white/60', 'hover:text-white', 'hover:bg-white/5');
-                buttonElement.classList.add('bg-cyan-500', 'text-black', 'shadow-[0_4px_12px_rgba(0,212,255,0.15)]');
+                buttonElement.classList.remove('text-white/60', 'hover:text-white', 'hover:bg-white/5', 'border-transparent');
+                buttonElement.classList.add('bg-gradient-to-r', 'from-cyan-500', 'to-cyan-600', 'text-black', 'shadow-[0_4px_15px_rgba(0,212,255,0.25)]', 'border-cyan-700');
             }
 
             if (tabId === 'chat' && buttonElement) {
                 const chatGeneralBadge = document.getElementById('chat-badge');
                 if (chatGeneralBadge) chatGeneralBadge.classList.add('hidden');
             }
-            toggleSidebar(false);
+            
+            // Só fecha a aba automaticamente se for em telas MOBILE (largura menor que 1024px)
+            if (window.innerWidth < 1024) {
+                toggleSidebar(false);
+            }
         }
 
         // Controle Menu Responsivo (Hambúrguer / Drawer)
@@ -545,6 +560,20 @@
                 sidebar.classList.toggle('sidebar-minimized');
                 if (icon) {
                     icon.className = sidebar.classList.contains('sidebar-minimized') ? "fa-solid fa-bars" : "fa-solid fa-bars-staggered";
+                }
+            }
+        }
+
+        // Toggle do Menu do Botão Flutuante (FAB)
+        function toggleFabMenu() {
+            const menu = document.getElementById('fab-menu');
+            const mainBtnIcon = document.getElementById('fab-icon');
+            if(menu) {
+                menu.classList.toggle('active');
+                if(menu.classList.contains('active')) {
+                    mainBtnIcon.style.transform = 'rotate(135deg)';
+                } else {
+                    mainBtnIcon.style.transform = 'rotate(0deg)';
                 }
             }
         }
@@ -602,7 +631,7 @@
                 closeVendaModal();
                 e.target.reset();
             } catch (err) {
-                alert('Erro ao sincronizar: ' + err.message);
+                alert('Erro ao sincronizar dados: ' + err.message);
             }
         }
 
@@ -643,7 +672,7 @@
             }
         }
 
-        // Agenda Avançada Realtime e Encaixe
+        // Agenda Avançada Realtime e Mudar Status
         async function alterarStatusAgendaPublic(id, novoStatus) {
             try {
                 const { error } = await _supabase.from('agenda').update({ status: novoStatus }).eq('id', id);
@@ -667,37 +696,47 @@
                 }]);
                 if (error) throw error;
                 e.target.reset();
+                alert("Atendimento inserido na grade!");
             } catch (err) {
                 alert("Erro ao encaixar horário: " + err.message);
             }
         }
 
-        // CONEXÕES EM TEMPO REAL (SUPABASE REALTIME FETCHERS)
+        // SINCRO & CARREGAMENTO (SUPABASE REALTIME FETCHERS)
 
-        // 1. Clientes (Tabela usuarios)
+        // 1. Clientes (Puxa e valida as propriedades corretas)
         async function carregarClientesAdmin() {
             try {
-                const { data, error } = await _supabase.from('usuarios').select('*').order('criado_em', { ascending: false });
+                // Sincroniza da tabela 'usuarios'
+                const { data, error } = await _supabase.from('usuarios').select('*');
                 if (error) throw error;
                 listaClientes = data || [];
                 renderizarTabelaClientes();
                 atualizarCardsContadores();
-            } catch (err) { console.error(err.message); }
+            } catch (err) { 
+                console.error("Erro ao ler clientes do Supabase:", err.message); 
+            }
         }
 
         function renderizarTabelaClientes() {
             const tabela = document.getElementById('clientes-table-body');
             if (!tabela) return;
-            tabela.innerHTML = listaClientes.length === 0 ? `<tr><td colspan="4" class="text-center p-4 text-white/30">Nenhum cliente cadastrado no app.</td></tr>` : '';
+            
+            tabela.innerHTML = listaClientes.length === 0 ? `<tr><td colspan="4" class="text-center p-6 text-white/30 font-medium">Nenhum cliente retornado do banco de dados ainda.</td></tr>` : '';
             
             listaClientes.forEach(cliente => {
-                const dataCadastro = cliente.criado_em ? new Date(cliente.criado_em).toLocaleDateString('pt-BR') : '---';
+                // Tratativa caso o campo de data no banco se chame criado_em ou created_at
+                const dataRaw = cliente.criado_em || cliente.created_at;
+                const dataCadastro = dataRaw ? new Date(dataRaw).toLocaleDateString('pt-BR') : '---';
+                
                 const linha = `
                     <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td class="p-4 font-bold text-cyan-400">${cliente.nome || 'Sem Nome'}</td>
-                        <td class="p-4 text-white/60">${cliente.email || '---'}</td>
-                        <td class="p-4 font-mono text-white/50">${cliente.whatsapp || dataCadastro}</td>
-                        <td class="p-4 text-right"><button onclick="abrirChatDireto('${cliente.id}')" class="text-purple-400 font-bold hover:underline"><i class="fa-solid fa-comments mr-1"></i> Contato</button></td>
+                        <td class="p-4 font-bold text-cyan-400">${cliente.nome || 'Usuário Sem Nome'}</td>
+                        <td class="p-4 text-white/70">${cliente.email || '---'}</td>
+                        <td class="p-4 font-mono text-white/50">${cliente.whatsapp || 'WhatsApp não cadastrado'} <span class="text-[10px] text-white/20 ml-2">(${dataCadastro})</span></td>
+                        <td class="p-4 text-right">
+                            <button onclick="switchTab('chat'); abrirChatDireto('${cliente.id}')" class="text-purple-400 font-bold hover:underline cursor-pointer"><i class="fa-solid fa-comments mr-1"></i> Abrir Conversa</button>
+                        </td>
                     </tr>`;
                 tabela.insertAdjacentHTML('beforeend', linha);
             });
@@ -706,7 +745,7 @@
         // 2. Colaboradores (Tabela colaboradores)
         async function carregarColaboradoresAdmin() {
             try {
-                const { data, error } = await _supabase.from('colaboradores').select('*').order('criado_em', { ascending: false });
+                const { data, error } = await _supabase.from('colaboradores').select('*').order('nome', { ascending: true });
                 if (error) throw error;
                 listaColaboradores = data || [];
                 renderizarTabelaColaboradores();
@@ -719,7 +758,7 @@
             tabela.innerHTML = listaColaboradores.length === 0 ? `<tr><td colspan="4" class="text-center p-3 text-white/30">Nenhum colaborador registrado.</td></tr>` : '';
             listaColaboradores.forEach(c => {
                 tabela.insertAdjacentHTML('beforeend', `
-                    <tr class="hover:bg-white/5 transition-colors">
+                    <tr class="hover:bg-white/5 transition-colors border-b border-white/5">
                         <td class="p-3 font-medium">${c.nome}</td>
                         <td class="p-3 text-white/60">${c.email}</td>
                         <td class="p-3 font-mono text-white/50">${c.whatsapp}</td>
@@ -731,7 +770,7 @@
         // 3. Agenda Integrada Realtime
         async function carregarAgendaAdmin() {
             try {
-                const { data, error } = await _supabase.from('agenda').select('*').order('criado_em', { ascending: false });
+                const { data, error } = await _supabase.from('agenda').select('*').order('data', { ascending: false });
                 if (error) throw error;
                 listaAgenda = data || [];
                 renderizarAgenda();
@@ -745,13 +784,13 @@
             if (planilha) {
                 planilha.innerHTML = listaAgenda.length === 0 ? `<tr><td colspan="5" class="text-center p-4 text-white/30">Nenhum agendamento ativo.</td></tr>` : '';
                 listaAgenda.forEach(a => {
-                    let statusLabel = a.status === "4" ? '<span class="text-emerald-400 font-bold uppercase text-[10px]">✓ OK</span>' : '<span class="text-amber-400 font-bold text-[10px]">Em Andamento</span>';
+                    let statusLabel = a.status === "4" ? '<span class="text-emerald-400 font-bold uppercase text-[10px]">✓ Concluído</span>' : '<span class="text-amber-400 font-bold text-[10px]">Em Andamento</span>';
                     planilha.insertAdjacentHTML('beforeend', `
-                        <tr class="hover:bg-white/5 transition-colors">
-                            <td class="p-3 font-mono font-bold text-cyan-400">${a.data} - ${a.horario}</td>
+                        <tr class="hover:bg-white/5 transition-colors border-b border-white/5">
+                            <td class="p-3 font-mono font-bold text-cyan-400">${a.data} às ${a.horario}</td>
                             <td class="p-3 font-medium">${a.cliente}</td>
                             <td class="p-3 text-white/70">${a.veiculo}</td>
-                            <td class="p-3"> <span class="bg-purple-500/10 text-purple-300 border border-purple-500/20 px-2 py-0.5 rounded text-[10px]">${a.servico}</span></td>
+                            <td class="p-3"> <span class="bg-purple-500/10 text-purple-300 border border-purple-500/20 px-2 py-0.5 rounded text-[10px] font-bold">${a.servico}</span></td>
                             <td class="p-3 text-center">${statusLabel}</td>
                         </tr>`);
                 });
@@ -759,22 +798,22 @@
 
             if (painelCards) {
                 const ativos = listaAgenda.filter(a => a.status !== "4");
-                painelCards.innerHTML = ativos.length === 0 ? `<div class="p-4 bg-white/5 rounded-xl col-span-2 text-center text-white/30 text-xs">Nenhum veículo em atendimento no pátio agora.</div>` : '';
+                painelCards.innerHTML = ativos.length === 0 ? `<div class="p-4 bg-white/5 rounded-xl text-center text-white/30 text-xs font-medium">Nenhum veículo em andamento no pátio agora.</div>` : '';
                 ativos.forEach(a => {
                     painelCards.insertAdjacentHTML('beforeend', `
-                        <div class="bg-black/40 border border-white/5 p-4 rounded-xl space-y-3">
+                        <div class="bg-black/30 border border-white/5 p-4 rounded-xl space-y-3 shadow-inner">
                             <div class="flex justify-between items-start gap-2">
                                 <div>
-                                    <h3 class="text-xs font-bold">${a.veiculo}</h3>
-                                    <p class="text-[11px] text-white/50 mt-0.5">Cliente: ${a.cliente}</p>
+                                    <h3 class="text-xs font-bold text-white/90">${a.veiculo}</h3>
+                                    <p class="text-[11px] text-white/40 mt-0.5">Dono: ${a.cliente}</p>
                                 </div>
                                 <span class="text-[9px] bg-purple-500/10 border border-purple-500/30 text-purple-300 px-2 py-0.5 rounded font-bold whitespace-nowrap">${a.servico}</span>
                             </div>
-                            <select onchange="alterarStatusAgendaPublic('${a.id}', this.value)" class="admin-select w-full p-2.5 rounded-lg text-xs outline-none cursor-pointer bg-neutral-900 text-white border border-white/10">
+                            <select onchange="alterarStatusAgendaPublic('${a.id}', this.value)" class="w-full p-2.5 rounded-xl text-xs font-medium outline-none cursor-pointer bg-neutral-900 text-white border border-white/10 focus:border-cyan-400">
                                 <option value="1" ${a.status === "1" ? "selected" : ""}>1. Recebido (Pátio)</option>
-                                <option value="2" ${a.status === "2" ? "selected" : ""}>2. Preparação (Lavagem)</option>
-                                <option value="3" ${a.status === "3" ? "selected" : ""}>3. Aplicação & Cura (Estufa)</option>
-                                <option value="4">4. Pronto para Retirada (Concluir)</option>
+                                <option value="2" ${a.status === "2" ? "selected" : ""}>2. Preparação / Lavagem</option>
+                                <option value="3" ${a.status === "3" ? "selected" : ""}>3. Aplicação / Estufa</option>
+                                <option value="4">4. Concluído (Entregar)</option>
                             </select>
                         </div>`);
                 });
@@ -785,7 +824,7 @@
         // 4. Catálogo de Serviços e Produtos
         async function carregarCatalogoAdmin() {
             try {
-                const { data, error } = await _supabase.from('servicos_produtos').select('*').order('criado_em', { ascending: false });
+                const { data, error } = await _supabase.from('servicos_produtos').select('*');
                 if (error) throw error;
                 listaCatalogo = data || [];
                 renderizarCatalogo();
@@ -795,17 +834,17 @@
         function renderizarCatalogo() {
             const container = document.getElementById('catalogo-items-container');
             if (!container) return;
-            container.innerHTML = listaCatalogo.length === 0 ? `<div class="p-6 bg-white/5 rounded-2xl col-span-3 text-center text-white/30 text-xs">Nenhum produto ou serviço catalogado no sistema.</div>` : '';
+            container.innerHTML = listaCatalogo.length === 0 ? `<div class="p-6 bg-white/5 rounded-2xl col-span-3 text-center text-white/30 text-xs">Nenhum produto ou serviço catalogado.</div>` : '';
             listaCatalogo.forEach(item => {
                 container.insertAdjacentHTML('beforeend', `
-                    <div class="cloud-container rounded-2xl p-5 flex flex-col justify-between bg-white/5 border border-white/5">
+                    <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between shadow-lg">
                         <div>
-                            <div class="flex justify-between items-start"><h3 class="text-sm font-bold">${item.nome}</h3><span class="text-[9px] px-2 py-0.5 rounded font-mono ${item.tipo === 'Produto' ? 'bg-amber-500/10 text-amber-400' : 'bg-cyan-500/10 text-cyan-400'}">${item.tipo}</span></div>
-                            <p class="text-xs text-white/50 mt-1">Disponibilizado e atualizado para os acessos do usuário em tempo real.</p>
+                            <div class="flex justify-between items-start"><h3 class="text-sm font-bold text-white/90">${item.nome}</h3><span class="text-[9px] font-bold px-2 py-0.5 rounded font-mono ${item.tipo === 'Produto' ? 'bg-amber-500/10 text-amber-400' : 'bg-cyan-500/10 text-cyan-400'}">${item.tipo}</span></div>
+                            <p class="text-xs text-white/40 mt-1">Sincronizado e exibido no app principal para os clientes.</p>
                         </div>
-                        <div class="flex justify-between items-center mt-4 pt-2 border-t border-white/5">
-                            <span class="text-xs text-white/40">Valor</span>
-                            <span class="text-sm font-bold text-cyan-400">R$ ${item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <div class="flex justify-between items-center mt-5 pt-2 border-t border-white/5">
+                            <span class="text-xs text-white/30 font-medium">Preço</span>
+                            <span class="text-sm font-black text-cyan-400">R$ ${item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                         </div>
                     </div>`);
             });
@@ -814,7 +853,7 @@
         // 5. Financeiro e Vendas Avançadas
         async function carregarVendasAdmin() {
             try {
-                const { data, error } = await _supabase.from('vendas').select('*').order('criado_em', { ascending: false });
+                const { data, error } = await _supabase.from('vendas').select('*');
                 if (error) throw error;
                 listaVendas = data || [];
                 calcularEExibirFinanceiro();
@@ -832,7 +871,8 @@
             const trintaDiasAtras = inicioHoje - (30 * 24 * 60 * 60 * 1000);
 
             listaVendas.forEach(v => {
-                const timeVenda = new Date(v.criado_em).getTime();
+                const dataRaw = v.criado_em || v.created_at;
+                const timeVenda = new Date(dataRaw).getTime();
 
                 if (timeVenda >= inicioHoje) totalHoje += v.valor;
                 if (timeVenda >= seteDiasAtras) totalSemana += v.valor;
@@ -861,7 +901,7 @@
                 domServHoje.innerText = `${countHoje} Lançamento${countHoje !== 1 ? 's' : ''}`;
             }
             if (domClieTotal) {
-                domClieTotal.innerText = `${listaClientes.length} Clientes`;
+                domClieTotal.innerText = `${listaClientes.length} Cliente${listaClientes.length !== 1 ? 's' : ''}`;
             }
         }
 
@@ -869,14 +909,14 @@
         async function carregarListaChatUsuarios() {
             const container = document.getElementById('chat-usuarios-lista');
             if (!container) return;
-            container.innerHTML = listaClientes.length === 0 ? `<div class="text-center p-3 text-white/30">Nenhum cliente para chat.</div>` : '';
+            container.innerHTML = listaClientes.length === 0 ? `<div class="text-center p-3 text-white/30 text-xs">Nenhum usuário indexado.</div>` : '';
             
             listaClientes.forEach(u => {
-                const ativoClass = usuarioChatAtivo === u.id ? 'bg-cyan-500/20 border-l-cyan-400 text-cyan-300 font-bold' : 'bg-white/5 border-l-transparent text-white/80';
+                const ativoClass = usuarioChatAtivo === u.id ? 'bg-cyan-500/10 border-l-cyan-400 text-cyan-400 font-bold' : 'bg-white/5 border-l-transparent text-white/70';
                 container.insertAdjacentHTML('beforeend', `
                     <div onclick="abrirChatDireto('${u.id}')" class="p-3 ${ativoClass} rounded-xl border-l-2 cursor-pointer hover:bg-white/10 transition-all flex justify-between items-center">
-                        <span>${u.nome || 'Usuário Ceramink'}</span>
-                        <span id="badge-user-${u.id}" class="w-1.5 h-1.5 bg-green-400 rounded-full hidden"></span>
+                        <span class="text-xs">${u.nome || 'Usuário Ceramink'}</span>
+                        <span id="badge-user-${u.id}" class="w-2 h-2 bg-green-400 rounded-full hidden shadow-[0_0_8px_#4ade80]"></span>
                     </div>`);
             });
         }
@@ -897,15 +937,15 @@
 
                 const boxMsg = document.getElementById('chat-mensagens-container');
                 if(!boxMsg) return;
-                boxMsg.innerHTML = data.length === 0 ? `<div class="text-center p-4 text-white/20">Nenhuma mensagem trocada ainda. Inicie o contato abaixo!</div>` : '';
+                boxMsg.innerHTML = data.length === 0 ? `<div class="text-center p-4 text-white/20 text-xs font-medium">Nenhum histórico estruturado. Envie a primeira mensagem!</div>` : '';
                 
                 data.forEach(m => {
                     const isAdmin = m.remetente === 'admin';
-                    const msgAlign = isAdmin ? 'ml-auto bg-cyan-500 text-black' : 'mr-auto bg-white/5 text-white';
+                    const msgAlign = isAdmin ? 'ml-auto bg-gradient-to-r from-cyan-400 to-cyan-500 text-black font-medium' : 'mr-auto bg-white/5 text-white';
                     boxMsg.insertAdjacentHTML('beforeend', `
-                        <div class="p-3 rounded-xl max-w-sm ${msgAlign} mb-2">
-                            <p class="${isAdmin ? 'text-black/60' : 'text-cyan-400'} font-bold text-[10px]">${isAdmin ? 'Você (Admin)' : 'Cliente'}</p>
-                            <p class="break-words text-xs">${m.texto}</p>
+                        <div class="p-3 rounded-2xl max-w-xs sm:max-w-sm ${msgAlign} mb-2 shadow-md">
+                            <p class="${isAdmin ? 'text-black/50' : 'text-purple-400'} font-black text-[9px] uppercase tracking-wider">${isAdmin ? 'Você (Admin)' : 'Cliente'}</p>
+                            <p class="break-words text-xs mt-0.5">${m.texto}</p>
                         </div>`);
                 });
                 boxMsg.scrollTop = boxMsg.scrollHeight;
@@ -932,7 +972,6 @@
         function activarEscutasEmTempoReal() {
             _supabase.channel('public-realtime-ceramink')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios' }, (payload) => { 
-                    console.log("Mudança em usuários detectada!", payload);
                     carregarClientesAdmin().then(() => carregarListaChatUsuarios()); 
                 })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'colaboradores' }, () => { carregarColaboradoresAdmin(); })
@@ -974,7 +1013,7 @@
                     datasets: [{
                         data: dadosGerados,
                         borderColor: '#00d4ff',
-                        backgroundColor: 'rgba(0, 212, 255, 0.02)',
+                        backgroundColor: 'rgba(0, 212, 255, 0.01)',
                         borderWidth: 2,
                         tension: 0.3,
                         fill: true
@@ -985,8 +1024,8 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 10 } } },
-                        y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 10 } } }
+                        x: { grid: { color: 'rgba(255,255,255,0.01)' }, ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.01)' }, ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 10 } } }
                     }
                 }
             });
@@ -999,6 +1038,7 @@
             chartInstance.update();
         }
 
+        // Listener para adaptar o comportamento responsivo da tela
         window.addEventListener('resize', () => {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
