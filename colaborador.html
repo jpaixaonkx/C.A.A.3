@@ -2,92 +2,83 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Colaborador | Ceramink</title>
+    <title>Ceramink | Painel Colaborador</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .fab-button { box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); transition: transform 0.3s; }
-        .fab-button:active { transform: scale(0.9); }
+        .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
-<body class="bg-[#060913] text-white min-h-screen pb-20">
+<body class="bg-[#060913] text-white flex min-h-screen font-sans">
 
-    <!-- Header -->
-    <header class="p-6 flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-bold tracking-tight">Ceramink <span class="text-purple-500">Colaborador</span></h1>
-            <p id="user-display" class="text-xs text-slate-400">Carregando...</p>
-        </div>
-        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">
-            <i class="fa-solid fa-user"></i>
-        </div>
-    </header>
-
-    <!-- Dashboard Cards -->
-    <main class="px-6 space-y-6">
-        <div class="grid grid-cols-2 gap-4">
-            <div class="glass-panel p-4 rounded-2xl">
-                <p class="text-[10px] text-slate-400 uppercase">Comissão</p>
-                <p id="comissao-val" class="text-xl font-bold text-purple-400">R$ 0,00</p>
+    <!-- Menu Lateral Flutuante -->
+    <aside id="sidebar" class="sidebar w-20 hover:w-64 glass fixed h-[90vh] my-[5vh] ml-4 rounded-3xl shadow-2xl z-50 overflow-hidden flex flex-col justify-between p-6">
+        <div class="space-y-10">
+            <div class="flex items-center gap-4">
+                <i class="fa-solid fa-gem text-purple-500 text-2xl"></i>
+                <span class="font-bold opacity-0 hover:opacity-100 transition-opacity">CERAMINK</span>
             </div>
-            <div class="glass-panel p-4 rounded-2xl">
-                <p class="text-[10px] text-slate-400 uppercase">Vendas</p>
-                <p id="vendas-val" class="text-xl font-bold">0</p>
-            </div>
+            <nav class="space-y-6">
+                <a href="#" class="flex items-center gap-4 text-purple-400"><i class="fa-solid fa-chart-pie"></i> <span class="opacity-0 hover:opacity-100">Dashboard</span></a>
+                <a href="#" onclick="logout()" class="flex items-center gap-4 text-red-400"><i class="fa-solid fa-power-off"></i> <span class="opacity-0 hover:opacity-100">Sair</span></a>
+            </nav>
         </div>
+    </aside>
 
-        <div id="historico" class="space-y-3">
-            <h2 class="text-sm font-bold text-slate-500 uppercase">Últimos Lançamentos</h2>
-            <!-- Dados inseridos via JS -->
+    <!-- Conteúdo Principal -->
+    <main class="ml-32 p-8 w-full">
+        <header class="mb-10">
+            <h1 class="text-3xl font-bold" id="welcome-msg">Bem-vindo, Operador</h1>
+            <p class="text-slate-400">Aqui está o resumo do seu desempenho atual.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="glass p-6 rounded-3xl">
+                <canvas id="meuGrafico"></canvas>
+            </div>
+            <div class="glass p-6 rounded-3xl">
+                <h2 class="text-xl font-bold mb-4">Lançamentos Recentes</h2>
+                <div id="lista-vendas" class="space-y-3"></div>
+            </div>
         </div>
     </main>
 
-    <!-- Menu Inferior -->
-    <nav class="fixed bottom-0 w-full glass-panel p-4 flex justify-around items-center z-40">
-        <button class="text-purple-500"><i class="fa-solid fa-house"></i></button>
-        <button class="text-slate-500"><i class="fa-solid fa-chart-line"></i></button>
-        <button class="text-slate-500" onclick="logout()"><i class="fa-solid fa-power-off"></i></button>
-    </nav>
-
-    <!-- Botão Flutuante de Vendas (FAB) -->
-    <button onclick="document.getElementById('modal-venda').classList.remove('hidden')" 
-            class="fixed bottom-20 right-6 w-14 h-14 bg-purple-600 rounded-full fab-button flex items-center justify-center text-xl z-50">
-        <i class="fa-solid fa-plus"></i>
-    </button>
-
-    <!-- Modal Venda -->
-    <div id="modal-venda" class="hidden fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-sm p-6 rounded-3xl space-y-4">
-            <h3 class="font-bold text-lg">Nova Venda</h3>
-            <input id="input-item" type="text" placeholder="Serviço/Produto" class="w-full bg-black/50 p-3 rounded-xl border border-slate-700 outline-none">
-            <input id="input-valor" type="number" placeholder="Valor" class="w-full bg-black/50 p-3 rounded-xl border border-slate-700 outline-none">
-            <button onclick="salvarVenda()" class="w-full bg-purple-600 py-3 rounded-xl font-bold">Registrar</button>
-            <button onclick="document.getElementById('modal-venda').classList.add('hidden')" class="w-full text-slate-500">Fechar</button>
-        </div>
-    </div>
-
     <script>
-        const _supabase = supabase.createClient('URL', 'KEY');
+        const _supabase = supabase.createClient('SUA_URL', 'SUA_KEY');
+        const NOME_COLUNA_USUARIO = "colaborador"; // Ajuste conforme seu banco
         const user = localStorage.getItem('usuario_logado') || 'Colaborador';
-        document.getElementById('user-display').innerText = user;
+        document.getElementById('welcome-msg').innerText = "Olá, " + user;
 
-        async function salvarVenda() {
-            const nome = document.getElementById('input-item').value;
-            const valor = document.getElementById('input-valor').value;
+        async function initDashboard() {
+            const { data } = await _supabase.from('vendas').select('*').eq(NOME_COLUNA_USUARIO, user);
             
-            // Substitua 'colaborador' pelo nome exato da sua coluna no Supabase
-            await _supabase.from('vendas').insert([{ colaborador: user, nome, valor }]);
-            alert('Lançado com sucesso!');
-            location.reload();
+            // Lógica do Gráfico
+            const ctx = document.getElementById('meuGrafico').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Comissão', 'Produzido'],
+                    datasets: [{
+                        data: [data.reduce((a, b) => a + (b.valor * 0.3), 0), data.reduce((a, b) => a + b.valor, 0)],
+                        backgroundColor: ['#a855f7', '#3b82f6']
+                    }]
+                }
+            });
+
+            // Renderizar Lista
+            document.getElementById('lista-vendas').innerHTML = data.map(v => `
+                <div class="flex justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                    <span>${v.nome}</span>
+                    <span class="font-bold text-green-400">R$ ${v.valor}</span>
+                </div>
+            `).join('');
         }
 
-        function logout() {
-            localStorage.removeItem('usuario_logado');
-            window.location.href = 'index.html';
-        }
+        function logout() { localStorage.removeItem('usuario_logado'); location.reload(); }
+        initDashboard();
     </script>
 </body>
 </html>
