@@ -3,92 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ceramink | Painel Pro</title>
+    <title>Ceramink | Painel Colaborador</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background: #050505; color: white; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
-        .stage-active { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.2); }
+        body { background: #060913; color: white; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .cloud-container { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
+        .sidebar-item { transition: all 0.3s; }
+        .sidebar-item:hover { background: rgba(139, 92, 246, 0.1); color: #a855f7; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <aside class="w-64 glass m-4 rounded-3xl p-6 flex flex-col justify-between shadow-2xl">
+    <aside class="w-64 cloud-container m-4 rounded-3xl p-6 flex flex-col justify-between">
         <div>
-            <h2 class="text-2xl font-bold mb-10 text-purple-500 italic">CERAMINK</h2>
-            <nav class="space-y-4">
-                <button onclick="showPage('dashboard')" class="w-full text-left p-3 hover:bg-white/5 rounded-xl"><i class="fa-solid fa-chart-line mr-3"></i>Dashboard</button>
-                <button onclick="showPage('agenda')" class="w-full text-left p-3 hover:bg-white/5 rounded-xl"><i class="fa-solid fa-calendar mr-3"></i>Agenda</button>
-                <button onclick="showPage('servicos')" class="w-full text-left p-3 hover:bg-white/5 rounded-xl"><i class="fa-solid fa-box mr-3"></i>Produtos/Serviços</button>
+            <h2 class="text-xl font-bold mb-10 text-cyan-400 tracking-widest uppercase">Ceramink Pro</h2>
+            <nav class="space-y-2">
+                <button onclick="showPage('dashboard')" class="w-full text-left p-3 sidebar-item rounded-xl"><i class="fa-solid fa-chart-line mr-3"></i>Dashboard</button>
+                <button onclick="showPage('vendas')" class="w-full text-left p-3 sidebar-item rounded-xl"><i class="fa-solid fa-hand-holding-dollar mr-3"></i>Lançar Venda</button>
+                <button onclick="showPage('agenda')" class="w-full text-left p-3 sidebar-item rounded-xl"><i class="fa-solid fa-calendar mr-3"></i>Agenda</button>
             </nav>
         </div>
-        <div class="space-y-4">
-            <a href="https://instagram.com/seuusuario" target="_blank" class="block p-3 hover:bg-white/5 rounded-xl"><i class="fa-brands fa-instagram mr-3"></i>Instagram</a>
-            <button onclick="logout()" class="w-full text-left p-3 text-red-500 hover:bg-red-500/10 rounded-xl"><i class="fa-solid fa-power-off mr-3"></i>Sair</button>
-        </div>
+        <button onclick="logout()" class="w-full text-left p-3 text-red-400 hover:bg-red-500/10 rounded-xl"><i class="fa-solid fa-power-off mr-3"></i>Sair</button>
     </aside>
 
-    <main id="content" class="flex-1 p-8 overflow-y-auto">
+    <main class="flex-1 p-8 overflow-y-auto">
+        
         <section id="dashboard" class="space-y-6">
-            <h1 class="text-3xl font-bold">Resumo Financeiro</h1>
+            <h1 class="text-2xl font-bold">Olá, <span id="colab-nome">Colaborador</span></h1>
             <div class="grid grid-cols-3 gap-6">
-                <div class="glass p-6 rounded-2xl">
-                    <p class="text-sm text-slate-400">Total Faturado</p>
-                    <h3 class="text-2xl font-bold" id="fat-total">R$ 0,00</h3>
+                <div class="cloud-container p-6 rounded-2xl border-l-4 border-cyan-400">
+                    <p class="text-xs text-slate-400 uppercase">Total Faturado</p>
+                    <h3 class="text-2xl font-bold mt-2" id="fat-total">R$ 0,00</h3>
                 </div>
-                <div class="glass p-6 rounded-2xl">
-                    <p class="text-sm text-slate-400">Sua Comissão</p>
-                    <h3 class="text-2xl font-bold text-purple-400" id="fat-comissao">R$ 0,00</h3>
+                <div class="cloud-container p-6 rounded-2xl border-l-4 border-purple-400">
+                    <p class="text-xs text-slate-400 uppercase">Sua Comissão</p>
+                    <h3 class="text-2xl font-bold mt-2 text-purple-400" id="fat-comissao">R$ 0,00</h3>
                 </div>
-            </div>
-            <div class="glass p-8 rounded-3xl h-64">
-                <canvas id="graficoVendas"></canvas>
             </div>
         </section>
 
-        <section id="status-servico" class="glass p-6 rounded-3xl mt-8">
-            <h2 class="mb-6 font-bold">Processo de Atendimento</h2>
-            <div class="flex justify-between items-center">
-                <div class="stage-active p-4 rounded-xl border">1º Garagem</div>
-                <div class="p-4 rounded-xl border border-slate-700">2º Estação</div>
-                <div class="p-4 rounded-xl border border-slate-700">3º Preparação</div>
-                <div class="p-4 rounded-xl border border-slate-700">4º Retirada</div>
-            </div>
+        <section id="vendas" class="hidden cloud-container p-8 rounded-3xl">
+            <h2 class="text-xl font-bold mb-6">Nova Venda</h2>
+            <form id="form-venda" class="grid grid-cols-2 gap-4">
+                <select id="select-cliente" class="bg-black/20 p-3 rounded-xl border border-white/10" required></select>
+                <select id="select-servico" class="bg-black/20 p-3 rounded-xl border border-white/10" required></select>
+                <button type="submit" class="col-span-2 bg-purple-600 hover:bg-purple-500 py-3 rounded-xl font-bold transition-all">Registrar Venda</button>
+            </form>
         </section>
     </main>
 
     <script>
-        const _supabase = supabase.createClient('https://pvlssbcljdwtskfaczjt.supabase.co', 'sb_publishable_aWvkKDlc_4kOaZMR47uhHg_EqmRUQuf');
-        const user = localStorage.getItem('usuario_logado');
+        const _supabase = supabase.createClient('URL_SUPABASE', 'KEY_SUPABASE');
+        let comissaoPct = 0;
 
-        // Navegação simples entre seções
+        async function init() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if(!user) window.location.href = 'index.html';
+            
+            // Carregar Perfil para pegar a comissão
+            const { data: perfil } = await _supabase.from('usuarios').select('*').eq('id', user.id).single();
+            comissaoPct = perfil.comissao_pct || 0;
+            document.getElementById('colab-nome').innerText = perfil.nome;
+
+            carregarDadosFinanceiros();
+            popularSelects();
+        }
+
+        async function carregarDadosFinanceiros() {
+            const { data } = await _supabase.from('vendas').select('valor').eq('colaborador_id', (await _supabase.auth.getUser()).data.user.id);
+            const total = data.reduce((acc, v) => acc + v.valor, 0);
+            document.getElementById('fat-total').innerText = `R$ ${total.toFixed(2)}`;
+            document.getElementById('fat-comissao').innerText = `R$ ${(total * (comissaoPct/100)).toFixed(2)}`;
+        }
+
+        async function popularSelects() {
+            const { data: clientes } = await _supabase.from('usuarios').select('id, nome').eq('funcao', 'cliente');
+            const { data: servicos } = await _supabase.from('servicos_produtos').select('id, nome, valor');
+            
+            document.getElementById('select-cliente').innerHTML = clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            document.getElementById('select-servico').innerHTML = servicos.map(s => `<option value="${s.id}" data-valor="${s.valor}">${s.nome}</option>`).join('');
+        }
+
+        document.getElementById('form-venda').onsubmit = async (e) => {
+            e.preventDefault();
+            const servico = document.getElementById('select-servico');
+            await _supabase.from('vendas').insert([{
+                cliente_id: document.getElementById('select-cliente').value,
+                colaborador_id: (await _supabase.auth.getUser()).data.user.id,
+                valor: servico.options[servico.selectedIndex].dataset.valor
+            }]);
+            alert('Venda registrada!');
+            carregarDadosFinanceiros();
+        };
+
         function showPage(id) {
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
         }
 
-        // Logout
-        function logout() { localStorage.clear(); window.location.href = 'admin.html'; }
+        init();
+        
+        // Realtime para atualizar dashboards automaticamente
+        _supabase.channel('vendas-channel').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'vendas' }, () => {
+            carregarDadosFinanceiros();
+        }).subscribe();
 
-        // Inicialização de Dados
-        async function loadData() {
-            const { data } = await _supabase.from('vendas').select('*').eq('colaborador', user);
-            
-            // Lógica do gráfico (Simples e Reativa)
-            const ctx = document.getElementById('graficoVendas').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Fev', 'Mar'],
-                    datasets: [{ label: 'Faturamento', data: [100, 200, 150], borderColor: '#8b5cf6' }]
-                }
-            });
-        }
-
-        loadData();
     </script>
 </body>
 </html>
