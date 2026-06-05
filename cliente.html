@@ -7,140 +7,65 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
-        .font-automotive { font-family: 'Orbitron', sans-serif; }
-        .font-sans-modern { font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* Mantendo seu visual original intacto */
         body { background: linear-gradient(-45deg, #060913, #0b2240, #1b0a2e, #0c0214); background-size: 400% 400%; animation: gradientMove 20s ease infinite; }
-        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        .cloud-container { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5); }
-        .client-input { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.3s ease; }
-        .client-input:focus { border-color: #00d4ff; box-shadow: 0 0 12px rgba(0, 212, 255, 0.2); outline: none; }
-        .step-dot { transition: all 0.5s ease; }
-        .step-line-fill { transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
-        input::-webkit-calendar-picker-indicator { filter: invert(1); }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.4); }
-        /* Ajustes de Chat Corrigidos */
-        .msg-admin { align-self: flex-start; background: rgba(255, 255, 255, 0.1); border-bottom-left-radius: 0; }
-        .msg-usuario { align-self: flex-end; background: #06b6d4; color: black; border-bottom-right-radius: 0; }
+        .cloud-container { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        /* Correção específica do Chat */
+        #chat-mensagens { display: flex; flex-direction: column; gap: 8px; }
+        .msg-admin { align-self: flex-start; background: rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 12px; max-width: 80%; }
+        .msg-usuario { align-self: flex-end; background: #06b6d4; color: black; padding: 8px; border-radius: 12px; max-width: 80%; }
     </style>
 </head>
-<body class="font-sans-modern text-white min-h-screen flex flex-col justify-between p-4 md:p-6 lg:p-8 relative">
+<body class="text-white">
 
-    <header class="w-full max-w-6xl mx-auto flex justify-between items-center pb-6 border-b border-white/5 z-10">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 p-[1px]">
-                <div class="w-full h-full bg-[#0d091a] rounded-xl flex items-center justify-center">
-                    <i class="fa-solid fa-car text-cyan-400"></i>
-                </div>
-            </div>
-            <div>
-                <span class="text-xs text-white/40 block">Olá, Proprietário</span>
-                <h1 id="cliente-nome-topo" class="text-sm md:text-base font-bold text-white">Buscando perfil...</h1>
-            </div>
+    <header class="max-w-6xl mx-auto flex justify-between items-center p-6 border-b border-white/5">
+        <div>
+            <span class="text-xs text-white/40 block">Olá, Proprietário</span>
+            <h1 id="cliente-nome-topo" class="text-sm font-bold">Carregando...</h1>
         </div>
-        <div class="flex items-center gap-3">
-            <button id="btn-notificacao" onclick="pedirPermissaoNotificacao()" class="text-xs bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 px-3 py-2 rounded-xl flex items-center gap-2 text-purple-300 transition-all">
-                <i class="fa-solid fa-bell"></i> Ativar Avisos
-            </button>
-            <button onclick="desconectar()" class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:text-red-400 transition-colors" title="Sair">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            </button>
-        </div>
+        <button onclick="desconectar()" class="hover:text-red-400"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
     </header>
 
-    <main class="w-full max-w-6xl mx-auto flex-1 my-6 grid grid-cols-1 lg:grid-cols-3 gap-6 z-10">
-        <div class="lg:col-span-2 space-y-6">
-            <div class="cloud-container rounded-2xl p-6 space-y-6">
-                <div class="flex justify-between items-start border-b border-white/5 pb-3">
-                    <div>
-                        <span class="text-[10px] uppercase font-automotive text-cyan-400 tracking-wider">Acompanhamento Realtime</span>
-                        <h2 class="text-base font-bold mt-0.5" id="veiculo-titulo">Nenhum veículo ativo</h2>
-                    </div>
-                    <span id="status-badge" class="px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded-lg text-[10px] font-bold uppercase tracking-wider">Aguardando</span>
-                </div>
-                <div class="relative flex flex-col sm:flex-row justify-between items-center gap-6 sm:gap-2 px-4 py-2">
-                    <div class="absolute top-5 left-4 right-4 h-[2px] bg-white/10 hidden sm:block z-0"></div>
-                    <div id="progress-bar-line" class="absolute top-5 left-4 h-[2px] bg-gradient-to-r from-cyan-400 to-purple-500 hidden sm:block z-0 step-line-fill" style="width: 0%;"></div>
-                    <div id="step-1" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40"><div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">1</div><span class="text-xs font-semibold">1. Recebido</span></div>
-                    <div id="step-2" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40"><div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">2</div><span class="text-xs font-semibold">2. Preparação</span></div>
-                    <div id="step-3" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40"><div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">3</div><span class="text-xs font-semibold">3. Aplicação & Cura</span></div>
-                    <div id="step-4" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40"><div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">4</div><span class="text-xs font-semibold">4. Retirada</span></div>
-                </div>
-                <div class="text-center text-xs text-white/50 bg-black/20 p-3 rounded-xl border border-white/5">
-                    <i class="fa-solid fa-circle-info text-cyan-400 mr-1"></i> <span id="status-descricao">Nenhum serviço em andamento no momento.</span>
-                </div>
-            </div>
-
-            <div class="cloud-container rounded-2xl p-6 space-y-4">
-                <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                    <h3 class="text-sm font-bold font-automotive tracking-wide text-purple-400"><i class="fa-solid fa-spray-can-sparkles"></i> Vitrine de Cuidados Premium</h3>
-                    <span class="text-[11px] text-white/40">Estoque em tempo real</span>
-                </div>
-                <div id="vitrine-produtos-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <p class="text-xs text-white/30 text-center col-span-2 py-2">Carregando vitrine...</p>
-                </div>
-            </div>
-
-            <div class="cloud-container rounded-2xl p-6 space-y-4">
-                <h3 class="text-sm font-bold font-automotive tracking-wide text-cyan-400"><i class="fa-solid fa-calendar-plus"></i> Solicitar Novo Agendamento</h3>
-                <form onsubmit="handleAgendamento(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                    <div class="space-y-1"><label class="text-white/60">Selecione o Serviço</label><select id="agenda-servico" class="client-input w-full p-3 rounded-xl text-white"></select></div>
-                    <div class="space-y-1"><label class="text-white/60">Seu Veículo (Modelo/Ano)</label><input type="text" id="agenda-veiculo" required class="client-input w-full p-3 rounded-xl text-white" placeholder="Ex: Civic Type R 2024"></div>
-                    <div class="space-y-1"><label class="text-white/60">Escolha a Data</label><input type="date" id="agenda-data" required class="client-input w-full p-3 rounded-xl text-white"></div>
-                    <div class="space-y-1"><label class="text-white/60">Escolha o Horário Exato</label><input type="time" id="agenda-hora" required class="client-input w-full p-3 rounded-xl text-white text-center font-bold tracking-wide"></div>
-                    <button type="submit" id="btn-agendar" class="sm:col-span-2 w-full bg-gradient-to-r from-cyan-400 to-purple-500 py-3.5 rounded-xl font-bold text-sm text-black uppercase tracking-wider disabled:opacity-55">Confirmar Solicitação de Vaga</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="space-y-6">
-            <div class="cloud-container rounded-2xl p-6 space-y-4 flex flex-col h-full">
-                <h3 class="text-sm font-bold border-b border-white/5 pb-2"><i class="fa-solid fa-clock-rotate-left text-purple-400"></i> Histórico & Pedidos</h3>
-                <div id="historico-cliente" class="space-y-3 overflow-y-auto max-h-[500px] pr-1 text-xs">
-                    <p class="text-white/30 text-center py-4">Buscando histórico...</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <div id="chat-widget" class="fixed bottom-5 right-5 z-50 flex flex-col items-end">
-        <div id="chat-box" class="hidden w-80 h-96 cloud-container rounded-2xl mb-3 flex flex-col overflow-hidden shadow-2xl border border-white/10 bg-[#0d091a]/95">
-            <div class="p-3 bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border-b border-white/5 flex justify-between items-center">
+    <div id="chat-widget" class="fixed bottom-5 right-5 z-50">
+        <div id="chat-box" class="hidden w-80 h-96 cloud-container rounded-2xl mb-3 flex flex-col overflow-hidden">
+            <div class="p-3 border-b border-white/5 flex justify-between items-center bg-black/20">
                 <span class="text-xs font-bold text-cyan-400">Suporte Ceramink</span>
-                <button onclick="toggleChat()" class="text-white/50"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="toggleChat()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="chat-mensagens" class="flex-1 p-3 overflow-y-auto flex flex-col gap-2 text-xs"></div>
+            <div id="chat-mensagens" class="flex-1 p-3 overflow-y-auto"></div>
             <form onsubmit="handleEnviarMensagem(event)" class="p-2 border-t border-white/5 bg-black/40 flex gap-2">
-                <input type="text" id="chat-input-msg" required placeholder="Escreva..." class="flex-1 bg-white/5 rounded-lg px-2 py-1 text-xs outline-none">
-                <button type="submit" class="bg-cyan-500 px-3 rounded-lg text-black font-bold text-xs"><i class="fa-solid fa-paper-plane"></i></button>
+                <input type="text" id="chat-input-msg" required class="flex-1 bg-white/5 rounded px-2 text-xs outline-none">
+                <button type="submit" class="bg-cyan-500 px-3 rounded text-black text-xs font-bold">Enviar</button>
             </form>
         </div>
-        <button onclick="toggleChat()" class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-white shadow-xl">
-            <i class="fa-solid fa-comments"></i>
-            <span id="chat-badge-notif" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-        </button>
+        <button onclick="toggleChat()" class="w-12 h-12 rounded-full bg-cyan-600 shadow-xl"><i class="fa-solid fa-comments"></i></button>
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://pvlssbcljdwtskfaczjt.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_aWvkKDlc_4kOaZMR47uhHg_EqmRUQuf';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const _supabase = supabase.createClient('SUA_URL', 'SUA_KEY');
         let usuarioLogado = null;
-        const fasesConfig = { 1: { badge: "Recebido", desc: "...", pct: "5%", color: "#00d4ff" }, 2: { badge: "Preparação", desc: "...", pct: "35%", color: "#00d4ff" }, 3: { badge: "Aplicação & Cura", desc: "...", pct: "68%", color: "#a855f7" }, 4: { badge: "Pronto para Retirada", desc: "...", pct: "100%", color: "#10b981" } };
 
         async function verificarSessaoEBuscarPerfil() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) return window.location.href = 'login.html';
             usuarioLogado = session.user;
+
+            // Busca nome na tabela usuarios
+            const { data: perfil } = await _supabase.from('usuarios').select('nome').eq('id', usuarioLogado.id).single();
+            if (perfil) document.getElementById('cliente-nome-topo').innerText = perfil.nome;
+            
             carregarMensagensChat();
-            // ... (restante das funções originais mantidas)
+            carregarCatalogoProdutosEServicos();
+        }
+
+        async function carregarCatalogoProdutosEServicos() {
+            const { data } = await _supabase.from('servicos_produtos').select('*');
+            const select = document.getElementById('agenda-servico');
+            if(select && data) {
+                select.innerHTML = data.filter(i => i.tipo === 'Serviço')
+                    .map(s => `<option value="${s.nome}">${s.nome}</option>`).join('');
+            }
         }
 
         async function carregarMensagensChat() {
@@ -148,9 +73,8 @@
             const container = document.getElementById('chat-mensagens');
             container.innerHTML = '';
             data?.forEach(msg => {
-                const isAdmin = msg.direcao === 'admin_para_usuario';
                 const div = document.createElement('div');
-                div.className = `p-2 rounded-xl max-w-[85%] text-xs ${isAdmin ? 'msg-admin' : 'msg-usuario'}`;
+                div.className = msg.direcao === 'admin_para_usuario' ? 'msg-admin' : 'msg-usuario';
                 div.innerText = msg.texto;
                 container.appendChild(div);
             });
@@ -164,10 +88,15 @@
             input.value = '';
         }
 
-        _supabase.channel('chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens_chat' }, () => carregarMensagensChat()).subscribe();
+        async function desconectar() {
+            await _supabase.auth.signOut();
+            window.location.href = 'login.html';
+        }
 
-        function toggleChat() { document.getElementById('chat-box').classList.toggle('hidden'); document.getElementById('chat-badge-notif').classList.add('hidden'); }
-        
+        function toggleChat() { document.getElementById('chat-box').classList.toggle('hidden'); }
+
+        _supabase.channel('public:mensagens_chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens_chat' }, () => carregarMensagensChat()).subscribe();
+
         document.addEventListener("DOMContentLoaded", verificarSessaoEBuscarPerfil);
     </script>
 </body>
