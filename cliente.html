@@ -7,64 +7,68 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* Mantendo seu visual original intacto */
+        .font-automotive { font-family: 'Orbitron', sans-serif; }
+        .font-sans-modern { font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: linear-gradient(-45deg, #060913, #0b2240, #1b0a2e, #0c0214); background-size: 400% 400%; animation: gradientMove 20s ease infinite; }
-        .cloud-container { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        /* Correção específica do Chat */
-        #chat-mensagens { display: flex; flex-direction: column; gap: 8px; }
-        .msg-admin { align-self: flex-start; background: rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 12px; max-width: 80%; }
-        .msg-usuario { align-self: flex-end; background: #06b6d4; color: black; padding: 8px; border-radius: 12px; max-width: 80%; }
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .cloud-container { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5); }
+        .client-input { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); }
+        /* Correção de Chat */
+        .chat-msg-admin { align-self: flex-start; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .chat-msg-user { align-self: flex-end; background: #06b6d4; color: #000; }
     </style>
 </head>
-<body class="text-white">
+<body class="font-sans-modern text-white min-h-screen flex flex-col p-4 md:p-8">
 
-    <header class="max-w-6xl mx-auto flex justify-between items-center p-6 border-b border-white/5">
-        <div>
-            <span class="text-xs text-white/40 block">Olá, Proprietário</span>
-            <h1 id="cliente-nome-topo" class="text-sm font-bold">Carregando...</h1>
+    <header class="w-full max-w-6xl mx-auto flex justify-between items-center pb-6 border-b border-white/5">
+        <div class="flex items-center gap-3">
+            <h1 id="cliente-nome-topo" class="text-sm md:text-base font-bold text-white">Carregando perfil...</h1>
         </div>
-        <button onclick="desconectar()" class="hover:text-red-400"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+        <button onclick="desconectar()" class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:text-red-400">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
     </header>
 
-    <div id="chat-widget" class="fixed bottom-5 right-5 z-50">
+    <div id="chat-widget" class="fixed bottom-5 right-5 z-50 flex flex-col items-end">
         <div id="chat-box" class="hidden w-80 h-96 cloud-container rounded-2xl mb-3 flex flex-col overflow-hidden">
-            <div class="p-3 border-b border-white/5 flex justify-between items-center bg-black/20">
+            <div class="p-3 border-b border-white/5 flex justify-between items-center">
                 <span class="text-xs font-bold text-cyan-400">Suporte Ceramink</span>
                 <button onclick="toggleChat()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="chat-mensagens" class="flex-1 p-3 overflow-y-auto"></div>
-            <form onsubmit="handleEnviarMensagem(event)" class="p-2 border-t border-white/5 bg-black/40 flex gap-2">
-                <input type="text" id="chat-input-msg" required class="flex-1 bg-white/5 rounded px-2 text-xs outline-none">
-                <button type="submit" class="bg-cyan-500 px-3 rounded text-black text-xs font-bold">Enviar</button>
+            <div id="chat-mensagens" class="flex-1 p-3 overflow-y-auto flex flex-col gap-2 text-xs"></div>
+            <form onsubmit="handleEnviarMensagem(event)" class="p-2 border-t border-white/5 flex gap-2">
+                <input type="text" id="chat-input-msg" required class="flex-1 bg-black/40 rounded-lg p-2 outline-none border border-white/10">
+                <button type="submit" class="bg-cyan-500 px-3 rounded-lg text-black font-bold">></button>
             </form>
         </div>
-        <button onclick="toggleChat()" class="w-12 h-12 rounded-full bg-cyan-600 shadow-xl"><i class="fa-solid fa-comments"></i></button>
+        <button onclick="toggleChat()" class="w-12 h-12 rounded-full bg-cyan-500"><i class="fa-solid fa-comments"></i></button>
     </div>
 
     <script>
-        const _supabase = supabase.createClient('SUA_URL', 'SUA_KEY');
+        const _supabase = supabase.createClient('https://pvlssbcljdwtskfaczjt.supabase.co', 'sb_publishable_aWvkKDlc_4kOaZMR47uhHg_EqmRUQuf');
         let usuarioLogado = null;
 
         async function verificarSessaoEBuscarPerfil() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) return window.location.href = 'login.html';
             usuarioLogado = session.user;
-
-            // Busca nome na tabela usuarios
-            const { data: perfil } = await _supabase.from('usuarios').select('nome').eq('id', usuarioLogado.id).single();
-            if (perfil) document.getElementById('cliente-nome-topo').innerText = perfil.nome;
             
-            carregarMensagensChat();
+            const { data } = await _supabase.from('usuarios').select('nome').eq('id', usuarioLogado.id).single();
+            document.getElementById('cliente-nome-topo').innerText = data ? data.nome : "Cliente";
+
             carregarCatalogoProdutosEServicos();
+            carregarMensagensChat();
         }
 
         async function carregarCatalogoProdutosEServicos() {
             const { data } = await _supabase.from('servicos_produtos').select('*');
             const select = document.getElementById('agenda-servico');
-            if(select && data) {
+            if (select && data) {
                 select.innerHTML = data.filter(i => i.tipo === 'Serviço')
-                    .map(s => `<option value="${s.nome}">${s.nome}</option>`).join('');
+                    .map(s => `<option value="${s.nome}">${s.nome} - R$ ${s.valor}</option>`).join('');
             }
         }
 
@@ -74,7 +78,7 @@
             container.innerHTML = '';
             data?.forEach(msg => {
                 const div = document.createElement('div');
-                div.className = msg.direcao === 'admin_para_usuario' ? 'msg-admin' : 'msg-usuario';
+                div.className = `p-2 rounded-xl max-w-[80%] ${msg.direcao === 'admin_para_usuario' ? 'chat-msg-admin' : 'chat-msg-user'}`;
                 div.innerText = msg.texto;
                 container.appendChild(div);
             });
@@ -95,7 +99,8 @@
 
         function toggleChat() { document.getElementById('chat-box').classList.toggle('hidden'); }
 
-        _supabase.channel('public:mensagens_chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens_chat' }, () => carregarMensagensChat()).subscribe();
+        _supabase.channel('chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens_chat' }, () => carregarMensagensChat()).subscribe();
+        _supabase.channel('servicos').on('postgres_changes', { event: '*', schema: 'public', table: 'servicos_produtos' }, () => carregarCatalogoProdutosEServicos()).subscribe();
 
         document.addEventListener("DOMContentLoaded", verificarSessaoEBuscarPerfil);
     </script>
