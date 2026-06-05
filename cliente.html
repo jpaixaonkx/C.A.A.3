@@ -1,675 +1,285 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ceramink - Espaço do Cliente</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ceramink - Espaço do Cliente</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
-        .font-automotive { font-family: 'Orbitron', sans-serif; }
-        .font-sans-modern { font-family: 'Plus Jakarta Sans', sans-serif; }
+    <style>
+        .font-automotive { font-family: 'Orbitron', sans-serif; }
+        .font-sans-modern { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        body {
-            background: linear-gradient(-45deg, #060913, #0b2240, #1b0a2e, #0c0214);
-            background-size: 400% 400%;
-            animation: gradientMove 20s ease infinite;
-        }
-        @keyframes gradientMove {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        body {
+            background: linear-gradient(-45deg, #060913, #0b2240, #1b0a2e, #0c0214);
+            background-size: 400% 400%;
+            animation: gradientMove 20s ease infinite;
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-        .cloud-container {
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
-        }
+        .cloud-container {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
 
-        .client-input {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s ease;
-        }
-        .client-input:focus {
-            border-color: #00d4ff;
-            box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
-            outline: none;
-        }
+        .client-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .client-input:focus {
+            border-color: #00d4ff;
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
+            outline: none;
+        }
 
-        .step-dot { transition: all 0.5s ease; }
-        .step-line-fill { transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        input::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-        }
-        
-        /* Custom scrollbar para o chat e histórico */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.4); }
-    </style>
+        .step-dot { transition: all 0.5s ease; }
+        .step-line-fill { transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        input::-webkit-calendar-picker-indicator { filter: invert(1); }
+        
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.4); }
+    </style>
 </head>
 <body class="font-sans-modern text-white min-h-screen flex flex-col justify-between p-4 md:p-6 lg:p-8 relative">
 
-    <header class="w-full max-w-6xl mx-auto flex justify-between items-center pb-6 border-b border-white/5 z-10">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 p-[1px]">
-                <div class="w-full h-full bg-[#0d091a] rounded-xl flex items-center justify-center">
-                    <i class="fa-solid fa-car text-cyan-400"></i>
-                </div>
-            </div>
-            <div>
-                <span class="text-xs text-white/40 block">Olá, Proprietário</span>
-                <h1 id="cliente-nome-topo" class="text-sm md:text-base font-bold text-white">Buscando perfil...</h1>
-            </div>
-        </div>
-        
-        <div class="flex items-center gap-3">
-            <button id="btn-notificacao" onclick="pedirPermissaoNotificacao()" class="text-xs bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 px-3 py-2 rounded-xl flex items-center gap-2 text-purple-300 transition-all">
-                <i class="fa-solid fa-bell"></i> Ativar Avisos
-            </button>
-            <button onclick="desconectar()" class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:text-red-400 transition-colors" title="Sair">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            </button>
-        </div>
-    </header>
-
-    <main class="w-full max-w-6xl mx-auto flex-1 my-6 grid grid-cols-1 lg:grid-cols-3 gap-6 z-10">
-        
-        <div class="lg:col-span-2 space-y-6">
-            <!-- TIMELINE CARD -->
-            <div class="cloud-container rounded-2xl p-6 space-y-6">
-                <div class="flex justify-between items-start border-b border-white/5 pb-3">
-                    <div>
-                        <span class="text-[10px] uppercase font-automotive text-cyan-400 tracking-wider">Acompanhamento Realtime</span>
-                        <h2 class="text-base font-bold mt-0.5" id="veiculo-titulo">Nenhum veículo ativo</h2>
-                    </div>
-                    <span id="status-badge" class="px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                        Aguardando
-                    </span>
-                </div>
-
-                <div class="relative flex flex-col sm:flex-row justify-between items-center gap-6 sm:gap-2 px-4 py-2">
-                    <div class="absolute top-5 left-4 right-4 h-[2px] bg-white/10 hidden sm:block z-0"></div>
-                    <div id="progress-bar-line" class="absolute top-5 left-4 h-[2px] bg-gradient-to-r from-cyan-400 to-purple-500 hidden sm:block z-0 step-line-fill" style="width: 0%;"></div>
-
-                    <div id="step-1" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500">
-                        <div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">1</div>
-                        <span class="text-xs font-semibold">1. Recebido</span>
-                    </div>
-
-                    <div id="step-2" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500">
-                        <div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">2</div>
-                        <span class="text-xs font-semibold">2. Preparação</span>
-                    </div>
-
-                    <div id="step-3" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500">
-                        <div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">3</div>
-                        <span class="text-xs font-semibold">3. Aplicação & Cura</span>
-                    </div>
-
-                    <div id="step-4" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500">
-                        <div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">4</div>
-                        <span class="text-xs font-semibold">4. Retirada</span>
-                    </div>
-                </div>
-
-                <div class="text-center text-xs text-white/50 bg-black/20 p-3 rounded-xl border border-white/5">
-                    <i class="fa-solid fa-circle-info text-cyan-400 mr-1"></i> <span id="status-descricao">Nenhum serviço em andamento no momento.</span>
-                </div>
-            </div>
-
-            <!-- VITRINE PREMIUM REALTIME -->
-            <div class="cloud-container rounded-2xl p-6 space-y-4">
-                <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                    <h3 class="text-sm font-bold font-automotive tracking-wide text-purple-400"><i class="fa-solid fa-spray-can-sparkles"></i> Vitrine de Cuidados Premium</h3>
-                    <span class="text-[11px] text-white/40">Estoque em tempo real</span>
-                </div>
-                <div id="vitrine-produtos-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- Gerado dinamicamente via JS -->
-                    <p class="text-xs text-white/30 text-center col-span-2 py-2">Carregando vitrine...</p>
-                </div>
-            </div>
-
-            <!-- SOLICITAR AGENDAMENTO REALTIME -->
-            <div class="cloud-container rounded-2xl p-6 space-y-4">
-                <h3 class="text-sm font-bold font-automotive tracking-wide text-cyan-400"><i class="fa-solid fa-calendar-plus"></i> Solicitar Novo Agendamento</h3>
-                <form onsubmit="handleAgendamento(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                    <div class="space-y-1">
-                        <label class="text-white/60">Selecione o Serviço</label>
-                        <select id="agenda-servico" class="client-input w-full p-3 rounded-xl text-white">
-                            <!-- Gerado dinamicamente de acordo com os serviços ativos no banco -->
-                        </select>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-white/60">Seu Veículo (Modelo/Ano)</label>
-                        <input type="text" id="agenda-veiculo" required class="client-input w-full p-3 rounded-xl text-white" placeholder="Ex: Civic Type R 2024">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-white/60">Escolha a Data</label>
-                        <input type="date" id="agenda-data" required class="client-input w-full p-3 rounded-xl text-white">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-white/60">Escolha o Horário Exato</label>
-                        <input type="time" id="agenda-hora" required class="client-input w-full p-3 rounded-xl text-white text-center font-bold tracking-wide">
-                    </div>
-                    <button type="submit" id="btn-agendar" class="sm:col-span-2 w-full bg-gradient-to-r from-cyan-400 to-purple-500 py-3.5 rounded-xl font-bold text-sm text-black uppercase tracking-wider disabled:opacity-55">
-                        Confirmar Solicitação de Vaga
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- SESSÃO LATERAL: HISTÓRICO -->
-        <div class="space-y-6">
-            <div class="cloud-container rounded-2xl p-6 space-y-4 flex flex-col h-full">
-                <h3 class="text-sm font-bold border-b border-white/5 pb-2"><i class="fa-solid fa-clock-rotate-left text-purple-400"></i> Histórico & Pedidos</h3>
-                <div id="historico-cliente" class="space-y-3 overflow-y-auto max-h-[500px] pr-1 text-xs">
-                    <p class="text-white/30 text-center py-4">Buscando histórico...</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- WIDGET DE CHAT FLUTUANTE (NOVO) -->
-    <div id="chat-widget" class="fixed bottom-5 right-5 z-50 flex flex-col items-end">
-        <!-- Janela do Chat -->
-        <div id="chat-box" class="hidden w-80 h-96 cloud-container rounded-2xl mb-3 flex flex-col overflow-hidden shadow-2xl border border-white/10 bg-[#0d091a]/95">
-            <div class="p-3 bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border-b border-white/5 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                    <span class="text-xs font-bold font-automotive tracking-wide text-cyan-400">Suporte Ceramink</span>
-                </div>
-                <button onclick="toggleChat()" class="text-white/50 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div id="chat-mensagens" class="flex-1 p-3 overflow-y-auto space-y-2 text-xs flex flex-col">
-                <!-- Mensagens injetadas via JS -->
-            </div>
-            <form onsubmit="handleEnviarMensagem(event)" class="p-2 border-t border-white/5 bg-black/40 flex gap-2">
-                <input type="text" id="chat-input-msg" required placeholder="Digite sua mensagem..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
-                <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-black px-3 rounded-xl text-xs font-bold transition-all">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </form>
-        </div>
-        <!-- Botão Redondo -->
-        <button onclick="toggleChat()" class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-black shadow-xl hover:scale-105 transition-transform relative">
-            <i class="fa-solid fa-comments text-lg text-white"></i>
-            <span id="chat-badge-notif" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-[#060913]"></span>
-        </button>
-    </div>
-
-    <footer class="w-full max-w-6xl mx-auto pt-4 border-t border-white/5 text-center text-[10px] text-white/30 font-automotive z-10">
-        © 2026 CAA SYSTEM • ÁREA EXCLUSIVA DO CLIENTE
-    </footer>
-
-    <script>
-        // CONFIGURAÇÕES SUPABASE
-        const SUPABASE_URL = window._env_?.SUPABASE_URL || 'https://pvlssbcljdwtskfaczjt.supabase.co';
-        const SUPABASE_ANON_KEY = window._env_?.SUPABASE_ANON_KEY || 'sb_publishable_aWvkKDlc_4kOaZMR47uhHg_EqmRUQuf';
-        
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        let usuarioLogado = null;
-
-        const fasesConfig = {
-            1: { badge: "Recebido", desc: "Veículo deu entrada no pátio e passou pela vistoria inicial.", pct: "5%", color: "#00d4ff" },
-            2: { badge: "Preparação", desc: "Processo de lavagem técnica detalhada e mascaramento de borrachas iniciado.", pct: "35%", color: "#00d4ff" },
-            3: { badge: "Aplicação & Cura", desc: "Polimento corretivo finalizado. Aplicando composto cerâmico na estufa climatizada.", pct: "68%", color: "#a855f7" },
-            4: { badge: "Pronto para Retirada", desc: "Finalizado! Seu veículo passou pelo controle de qualidade e já pode ser retirado.", pct: "100%", color: "#10b981" }
-        };
-
-        // 1. CARREGAR PERFIL E INICIAR APLICAÇÃO
-        async function verificarSessaoEBuscarPerfil() {
-            try {
-                const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
-                
-                if (sessionError || !session) {
-                    window.location.href = 'login.html';
-                    return;
-                }
-
-                usuarioLogado = session.user;
-                let nomeExibicao = "";
-
-                const { data: perfil, error: dbError } = await _supabase
-                    .from('usuarios')
-                    .select('nome')
-                    .eq('id', usuarioLogado.id)
-                    .maybeSingle();
-
-                if (!dbError && perfil && perfil.nome) {
-                    nomeExibicao = perfil.nome;
-                } else if (usuarioLogado.user_metadata) {
-                    nomeExibicao = usuarioLogado.user_metadata.nome || usuarioLogado.user_metadata.full_name;
-                }
-
-                if (!nomeExibicao) {
-                    nomeExibicao = usuarioLogado.email.split('@')[0];
-                }
-
-                document.getElementById('cliente-nome-topo').innerText = nomeExibicao;
-
-                // Carga inicial de dados Dinâmicos
-                buscarDadosVeiculoEStatus();
-                buscarHistoricoPedidos();
-                carregarCatalogoProdutosEServicos();
-                carregarMensagensChat();
-                escutarMudancasEmTempoReal();
-
-            } catch (err) {
-                console.error("Erro interno no painel do cliente:", err);
-            }
-        }
-
-        // 2. BUSCAR VEÍCULO E STATUS ATUALIZADOS DO BANCO
-        async function buscarDadosVeiculoEStatus() {
-            try {
-                const { data, error } = await _supabase
-                    .from('servicos') 
-                    .select('veiculo, fase_status')
-                    .eq('id_usuario', usuarioLogado.id)
-                    .order('criado_em', { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-
-                if (data) {
-                    document.getElementById('veiculo-titulo').innerText = data.veiculo;
-                    atualizarTimelineVisual(data.fase_status || 1);
-                } else {
-                    document.getElementById('veiculo-titulo').innerText = "Nenhum veículo ativo";
-                    atualizarTimelineVisual(1);
-                }
-            } catch (e) {
-                console.error("Erro ao buscar status do veículo:", e);
-            }
-        }
-
-        // 3. ATUALIZAR INTERFACE DA TIMELINE
-        function atualizarTimelineVisual(fase) {
-            fase = parseInt(fase) || 1;
-            const config = fasesConfig[fase] || fasesConfig[1];
-
-            if(document.getElementById('status-badge')) {
-                const badge = document.getElementById('status-badge');
-                badge.innerText = config.badge;
-                badge.style.color = config.color;
-                badge.style.backgroundColor = `${config.color}15`;
-            }
-            if(document.getElementById('status-descricao')) {
-                document.getElementById('status-descricao').innerText = config.desc;
-            }
-            if(document.getElementById('progress-bar-line')) {
-                document.getElementById('progress-bar-line').style.width = config.pct;
-            }
-
-            for (let i = 1; i <= 4; i++) {
-                const stepElement = document.getElementById(`step-${i}`);
-                if (!stepElement) continue;
-                
-                const dot = stepElement.querySelector('.step-dot');
-                if (!dot) continue;
-                
-                if (i < fase) {
-                    stepElement.classList.remove('opacity-40');
-                    stepElement.classList.add('opacity-100');
-                    stepElement.style.color = '#00d4ff';
-                    dot.style.backgroundColor = '#00d4ff';
-                    dot.style.borderColor = '#00d4ff';
-                    dot.style.color = '#000000';
-                    dot.innerHTML = '<i class="fa-solid fa-check text-[10px]"></i>';
-                } else if (i === fase) {
-                    stepElement.classList.remove('opacity-40');
-                    stepElement.classList.add('opacity-100');
-                    stepElement.style.color = config.color;
-                    dot.style.backgroundColor = '#0d091a';
-                    dot.style.borderColor = config.color;
-                    dot.style.color = config.color;
-                    dot.innerHTML = i;
-                    dot.classList.add('animate-pulse', 'shadow-[0_0_15px_rgba(0,212,255,0.4)]');
-                } else {
-                    stepElement.classList.add('opacity-40');
-                    stepElement.classList.remove('opacity-100');
-                    stepElement.style.color = '#ffffff';
-                    dot.style.backgroundColor = '#0d091a';
-                    dot.style.borderColor = 'rgba(255,255,255,0.2)';
-                    dot.style.color = '#ffffff';
-                    dot.innerHTML = i;
-                    dot.classList.remove('animate-pulse', 'shadow-[0_0_15px_rgba(0,212,255,0.4)]');
-                }
-            }
-        }
-
-        // 4. CARREGAR CATÁLOGO DE PRODUTOS E SERVIÇOS DO SUPABASE (REALTIME)
-        async function carregarCatalogoProdutosEServicos() {
-            try {
-                const { data, error } = await _supabase
-                    .from('servicos_produtos')
-                    .select('*');
-
-                if (error) throw error;
-
-                const containerProdutos = document.getElementById('vitrine-produtos-container');
-                const selectServicos = document.getElementById('agenda-servico');
-
-                containerProdutos.innerHTML = '';
-                selectServicos.innerHTML = '';
-
-                let totalProdutos = 0;
-
-                data.forEach(item => {
-                    if (item.tipo === 'Produto') {
-                        totalProdutos++;
-                        const card = `
-                            <div class="bg-black/30 border border-white/5 p-4 rounded-xl flex flex-col justify-between gap-3">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <h4 class="text-xs font-bold text-white">${item.nome}</h4>
-                                        <p class="text-[11px] text-white/40 mt-1">Disponível para entrega imediata na estética.</p>
-                                    </div>
-                                    <span class="text-xs font-automotive text-cyan-400 font-bold">R$ ${parseFloat(item.valor).toFixed(2).replace('.', ',')}</span>
-                                </div>
-                                <button onclick="comprarProduto('${item.nome}', ${item.valor})" class="w-full bg-white/5 hover:bg-purple-500 hover:text-black py-2 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all">
-                                    Adicionar ao Carro
-                                </button>
-                            </div>
-                        `;
-                        containerProdutos.insertAdjacentHTML('beforeend', card);
-                    } else if (item.tipo === 'Serviço') {
-                        const opt = `<option value="${item.nome}"> ${item.nome} - R$ ${parseFloat(item.valor).toFixed(2).replace('.', ',')} </option>`;
-                        selectServicos.insertAdjacentHTML('beforeend', opt);
-                    }
-                });
-
-                if(totalProdutos === 0) {
-                    containerProdutos.innerHTML = '<p class="text-xs text-white/30 text-center col-span-2 py-2">Nenhum produto em estoque.</p>';
-                }
-
-            } catch (err) {
-                console.error("Erro ao montar vitrine:", err);
-            }
-        }
-
-        // 5. CARREGAR HISTÓRICO E PEDIDOS INTEGRADOS
-        async function buscarHistoricoPedidos() {
-            const container = document.getElementById('historico-cliente');
-            try {
-                const { data, error } = await _supabase
-                    .from('historico_pedidos') 
-                    .select('*')
-                    .eq('id_usuario', usuarioLogado.id)
-                    .order('criado_em', { ascending: false });
-
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    container.innerHTML = `<p class="text-white/30 text-center py-4">Nenhum registro encontrado.</p>`;
-                    return;
-                }
-
-                container.innerHTML = '';
-                data.forEach(item => {
-                    let statusClasse = 'text-amber-400';
-                    let iconeStatus = '<i class="fa-solid fa-clock"></i>';
-                    
-                    if(item.status === 'Finalizado' || item.status === 'Concluído') {
-                        statusClasse = 'text-emerald-400';
-                        iconeStatus = '<i class="fa-solid fa-circle-check"></i>';
-                    } else if(item.status === 'Cancelado') {
-                        statusClasse = 'text-red-400';
-                        iconeStatus = '<i class="fa-solid fa-circle-xmark"></i>';
-                    }
-
-                    const dataFormatada = new Date(item.criado_em).toLocaleDateString('pt-BR');
-
-                    const card = `
-                        <div class="p-3 bg-black/20 border border-white/5 rounded-xl space-y-1 mb-2">
-                            <div class="flex justify-between font-bold">
-                                <span>${item.tipo_icone || '📦'} ${item.titulo}</span>
-                                <span class="text-purple-400">R$ ${parseFloat(item.valor).toFixed(2).replace('.', ',')}</span>
-                            </div>
-                            <p class="text-white/40 text-[11px]">${item.descricao || ''} • ${dataFormatada}</p>
-                            <span class="${statusClasse} text-[10px] font-bold">${iconeStatus} ${item.status}</span>
-                        </div>
-                    `;
-                    container.insertAdjacentHTML('beforeend', card);
-                });
-
-            } catch (e) {
-                console.error("Erro ao puxar histórico:", e);
-                container.innerHTML = `<p class="text-red-400/60 text-center py-4">Erro ao carregar dados.</p>`;
-            }
-        }
-
-        // 6. ENVIAR SOLICITAÇÃO DE AGENDAMENTO PARA O BANCO
-        async function handleAgendamento(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-agendar');
-            
-            const servico = document.getElementById('agenda-servico').value;
-            const veiculo = document.getElementById('agenda-veiculo').value;
-            const dataInput = document.getElementById('agenda-data').value;
-            const hora = document.getElementById('agenda-hora').value;
-
-            btn.disabled = true;
-
-            try {
-                // Descobre valor dinâmico consultando o select ou injeta um padrão seguro
-                const { data: itemServ } = await _supabase.from('servicos_produtos').select('valor').eq('nome', servico).maybeSingle();
-                const valorFinal = itemServ ? itemServ.valor : 150.00;
-
-                const { error } = await _supabase
-                    .from('historico_pedidos') 
-                    .insert([{
-                        id_usuario: usuarioLogado.id,
-                        titulo: servico,
-                        valor: valorFinal,
-                        descricao: `Carro: ${veiculo} | Data: ${dataInput.split('-').reverse().join('/')} às ${hora}h`,
-                        status: 'Aguardando Confirmação',
-                        tipo_icone: '🗓️'
-                    }]);
-
-                if (error) throw error;
-
-                alert(`Agendamento solicitado com sucesso para às ${hora}h!`);
-                e.target.reset();
-                buscarHistoricoPedidos();
-
-            } catch (err) {
-                alert("Falha ao salvar agendamento: " + err.message);
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
-        // 7. COMPRAR PRODUTO DA VITRINE E ENVIAR AO ADMIN
-        async function comprarProduto(nome, preco) {
-            try {
-                const { error } = await _supabase
-                    .from('historico_pedidos')
-                    .insert([{
-                        id_usuario: usuarioLogado.id,
-                        titulo: nome,
-                        valor: preco,
-                        descricao: 'Adicionado à sua conta de entrega / Ordem de Serviço.',
-                        status: 'Separando no estoque',
-                        tipo_icone: '📦'
-                    }]);
-
-                if (error) throw error;
-
-                alert(`Sucesso! O produto "${nome}" foi reservado e anexado à sua conta.`);
-                buscarHistoricoPedidos();
-
-            } catch (err) {
-                alert("Erro ao processar reserva: " + err.message);
-            }
-        }
-
-        // ==========================================
-        //  SISTEMA DE CHAT INTEGRADO EM TEMPO REAL
-        // ==========================================
-        function toggleChat() {
-            const chatBox = document.getElementById('chat-box');
-            chatBox.classList.toggle('hidden');
-            document.getElementById('chat-badge-notif').classList.add('hidden');
-            scrollarChatAbaixo();
-        }
-
-        async function carregarMensagensChat() {
-            if(!usuarioLogado) return;
-            try {
-                const { data, error } = await _supabase
-                    .from('mensagens_chat')
-                    .select('*')
-                    .eq('usuario_id', usuarioLogado.id)
-                    .order('criado_em', { ascending: true });
-
-                if (error) throw error;
-
-                const container = document.getElementById('chat-mensagens');
-                container.innerHTML = '';
-
-                data.forEach(msg => {
-                    const deAdmin = msg.direcao === 'admin_para_usuario';
-                    const msgHtml = `
-                        <div class="max-w-[85%] rounded-xl p-2.5 mb-1 ${deAdmin ? 'bg-white/10 self-start text-white border border-white/5' : 'bg-cyan-500 text-black font-medium self-end'}">
-                            <p class="leading-relaxed break-words">${msg.texto}</p>
-                        </div>
-                    `;
-                    container.insertAdjacentHTML('beforeend', msgHtml);
-                });
-                scrollarChatAbaixo();
-            } catch(e) {
-                console.error("Erro ao puxar chat:", e);
-            }
-        }
-
-        async function handleEnviarMensagem(e) {
-            e.preventDefault();
-            const input = document.getElementById('chat-input-msg');
-            const texto = input.value.trim();
-            if(!texto || !usuarioLogado) return;
-
-            try {
-                const { error } = await _supabase
-                    .from('mensagens_chat')
-                    .insert([{
-                        usuario_id: usuarioLogado.id,
-                        texto: texto,
-                        direcao: 'usuario_para_admin'
-                    }]);
-
-                if (error) throw error;
-                input.value = '';
-                carregarMensagensChat();
-            } catch(err) {
-                console.error("Erro ao enviar mensagem:", err);
-            }
-        }
-
-        function scrollarChatAbaixo() {
-            const container = document.getElementById('chat-mensagens');
-            container.scrollTop = container.scrollHeight;
-        }
-
-        // 8. GLOBAL REALTIME CHANNELS (OUVINTE SUPABASE MULTI-TABLES)
-        function escutarMudancasEmTempoReal() {
-            _supabase
-                .channel('canal-cliente-global')
-                // Escuta atualizações de andamento no veículo
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'servicos' }, (payload) => {
-                    if (payload.new && payload.new.id_usuario === usuarioLogado.id) {
-                        document.getElementById('veiculo-titulo').innerText = payload.new.veiculo;
-                        atualizarTimelineVisual(payload.new.fase_status);
-                        enviarNotificacaoFase(payload.new.fase_status, payload.new.veiculo);
-                    }
-                })
-                // Escuta novos pedidos ou mudanças de status de faturamento
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'historico_pedidos' }, (payload) => {
-                    if (payload.new && payload.new.id_usuario === usuarioLogado.id) {
-                        buscarHistoricoPedidos();
-                    }
-                })
-                // Escuta alterações na vitrine e tabela de preços
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'servicos_produtos' }, () => {
-                    carregarCatalogoProdutosEServicos();
-                })
-                // Escuta novas mensagens enviadas pelo admin. o arquivo ainda não esta completo, irei enviar a parte final do arquivo. aguarde eu enviar  o final do arquivo para corrigilo
-                // Escuta novas mensagens enviadas pelo admin
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens_chat' }, (payload) => {
-                    if (payload.new && payload.new.usuario_id === usuarioLogado.id) {
-                        carregarMensagensChat();
-                        if(payload.new.direcao === 'admin_para_usuario') {
-                            const chatBox = document.getElementById('chat-box');
-                            if(chatBox.classList.contains('hidden')) {
-                                document.getElementById('chat-badge-notif').classList.remove('hidden');
-                            }
-                        }
-                    }
-                })
-                .subscribe();
-        }
-
-        // NOTIFICAÇÕES NATIVAS DO NAVEGADOR
-        function pedirPermissaoNotificacao() {
-            if (!("Notification" in window)) {
-                alert("Este navegador não suporta notificações de desktop.");
-                return;
-            }
-            Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    document.getElementById('btn-notificacao').innerHTML = '<i class="fa-solid fa-bell text-emerald-400"></i> Avisos Ativos';
-                    document.getElementById('btn-notificacao').classList.replace('text-purple-300', 'text-emerald-400');
-                    new Notification("Ceramink Estética", {
-                        body: "Excelente! Você receberá alertas em tempo real a cada mudança no seu veículo.",
-                        icon: "logo.jpeg"
-                    });
-                }
-            });
-        }
-
-        function enviarNotificacaoFase(fase, modeloCarro) {
-            if (Notification.permission === "granted") {
-                const config = fasesConfig[fase] || fasesConfig[1];
-                new Notification(`Ceramink: Status Atualizado!`, {
-                    body: `${modeloCarro || 'Seu veículo'} mudou para: ${config.badge}`,
-                    icon: "logo.jpeg"
-                });
-            }
-        }
-
-        // DESCONECTAR AJUSTADO E SEGURO
-        async function desconectar() {
-            try {
-                await _supabase.auth.signOut();
-                localStorage.clear();
-                window.location.href = 'index.html';
-            } catch (err) {
-                console.error("Erro ao sair da conta:", err);
-                window.location.href = 'index.html';
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            verificarSessaoEBuscarPerfil();
-            document.getElementById('agenda-data').setAttribute('min', new Date().toISOString().split('T')[0]);
-
-            if (Notification.permission === "granted") {
-                document.getElementById('btn-notificacao').innerHTML = '<i class="fa-solid fa-bell text-emerald-400"></i> Avisos Ativos';
-                document.getElementById('btn-notificacao').classList.replace('text-purple-300', 'text-emerald-400');
-            }
-        });
-    </script>
+    <header class="w-full max-w-6xl mx-auto flex justify-between items-center pb-6 border-b border-white/5 z-10">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 p-[1px]">
+                <div class="w-full h-full bg-[#0d091a] rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-car text-cyan-400"></i>
+                </div>
+            </div>
+            <div>
+                <span class="text-xs text-white/40 block">Olá, Proprietário</span>
+                <h1 id="cliente-nome-topo" class="text-sm md:text-base font-bold text-white">Buscando perfil...</h1>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <button id="btn-notificacao" onclick="pedirPermissaoNotificacao()" class="text-xs bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 px-3 py-2 rounded-xl flex items-center gap-2 text-purple-300 transition-all">
+                <i class="fa-solid fa-bell"></i> Ativar Avisos
+            </button>
+            <button onclick="desconectar()" class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:text-red-400 transition-colors" title="Sair">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-6xl mx-auto flex-1 my-6 grid grid-cols-1 lg:grid-cols-3 gap-6 z-10">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="cloud-container rounded-2xl p-6 space-y-6">
+                <div class="flex justify-between items-start border-b border-white/5 pb-3">
+                    <div>
+                        <span class="text-[10px] uppercase font-automotive text-cyan-400 tracking-wider">Acompanhamento Realtime</span>
+                        <h2 class="text-base font-bold mt-0.5" id="veiculo-titulo">Nenhum veículo ativo</h2>
+                    </div>
+                    <span id="status-badge" class="px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded-lg text-[10px] font-bold uppercase tracking-wider">Aguardando</span>
+                </div>
+                <div class="relative flex flex-col sm:flex-row justify-between items-center gap-6 sm:gap-2 px-4 py-2">
+                    <div class="absolute top-5 left-4 right-4 h-[2px] bg-white/10 hidden sm:block z-0"></div>
+                    <div id="progress-bar-line" class="absolute top-5 left-4 h-[2px] bg-gradient-to-r from-cyan-400 to-purple-500 hidden sm:block z-0 step-line-fill" style="width: 0%;"></div>
+                    <div id="step-1" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500"><div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">1</div><span class="text-xs font-semibold">1. Recebido</span></div>
+                    <div id="step-2" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500"><div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">2</div><span class="text-xs font-semibold">2. Preparação</span></div>
+                    <div id="step-3" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500"><div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">3</div><span class="text-xs font-semibold">3. Aplicação & Cura</span></div>
+                    <div id="step-4" class="flex sm:flex-col items-center gap-3 sm:gap-2 z-10 w-full sm:w-auto opacity-40 transition-opacity duration-500"><div class="w-10 h-10 rounded-full bg-[#0d091a] border-2 border-white/20 text-white flex items-center justify-center font-bold text-xs step-dot">4</div><span class="text-xs font-semibold">4. Retirada</span></div>
+                </div>
+                <div class="text-center text-xs text-white/50 bg-black/20 p-3 rounded-xl border border-white/5">
+                    <i class="fa-solid fa-circle-info text-cyan-400 mr-1"></i> <span id="status-descricao">Nenhum serviço em andamento no momento.</span>
+                </div>
+            </div>
+
+            <div class="cloud-container rounded-2xl p-6 space-y-4">
+                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                    <h3 class="text-sm font-bold font-automotive tracking-wide text-purple-400"><i class="fa-solid fa-spray-can-sparkles"></i> Vitrine de Cuidados Premium</h3>
+                </div>
+                <div id="vitrine-produtos-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <p class="text-xs text-white/30 text-center col-span-2 py-2">Carregando vitrine...</p>
+                </div>
+            </div>
+
+            <div class="cloud-container rounded-2xl p-6 space-y-4">
+                <h3 class="text-sm font-bold font-automotive tracking-wide text-cyan-400"><i class="fa-solid fa-calendar-plus"></i> Solicitar Novo Agendamento</h3>
+                <form onsubmit="handleAgendamento(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div class="space-y-1">
+                        <label class="text-white/60">Selecione o Serviço</label>
+                        <select id="agenda-servico" class="client-input w-full p-3 rounded-xl text-white"></select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-white/60">Seu Veículo (Modelo/Ano)</label>
+                        <input type="text" id="agenda-veiculo" required class="client-input w-full p-3 rounded-xl text-white" placeholder="Ex: Civic Type R 2024">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-white/60">Escolha a Data</label>
+                        <input type="date" id="agenda-data" required class="client-input w-full p-3 rounded-xl text-white">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-white/60">Escolha o Horário Exato</label>
+                        <input type="time" id="agenda-hora" required class="client-input w-full p-3 rounded-xl text-white text-center font-bold tracking-wide">
+                    </div>
+                    <button type="submit" id="btn-agendar" class="sm:col-span-2 w-full bg-gradient-to-r from-cyan-400 to-purple-500 py-3.5 rounded-xl font-bold text-sm text-black uppercase tracking-wider disabled:opacity-55">
+                        Confirmar Solicitação de Vaga
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="cloud-container rounded-2xl p-6 space-y-4 flex flex-col h-full">
+                <h3 class="text-sm font-bold border-b border-white/5 pb-2"><i class="fa-solid fa-clock-rotate-left text-purple-400"></i> Histórico & Pedidos</h3>
+                <div id="historico-cliente" class="space-y-3 overflow-y-auto max-h-[500px] pr-1 text-xs">
+                    <p class="text-white/30 text-center py-4">Buscando histórico...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="chat-widget" class="fixed bottom-5 right-5 z-50 flex flex-col items-end">
+        <div id="chat-box" class="hidden w-80 h-96 cloud-container rounded-2xl mb-3 flex flex-col overflow-hidden shadow-2xl border border-white/10 bg-[#0d091a]/95">
+            <div class="p-3 bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div><span class="text-xs font-bold font-automotive tracking-wide text-cyan-400">Suporte Ceramink</span></div>
+                <button onclick="toggleChat()" class="text-white/50 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="chat-mensagens" class="flex-1 p-3 overflow-y-auto space-y-2 text-xs flex flex-col"></div>
+            <form onsubmit="handleEnviarMensagem(event)" class="p-2 border-t border-white/5 bg-black/40 flex gap-2">
+                <input type="text" id="chat-input-msg" required placeholder="Digite sua mensagem..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+                <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-black px-3 rounded-xl text-xs font-bold transition-all"><i class="fa-solid fa-paper-plane"></i></button>
+            </form>
+        </div>
+        <button onclick="toggleChat()" class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-black shadow-xl hover:scale-105 transition-transform relative">
+            <i class="fa-solid fa-comments text-lg text-white"></i>
+            <span id="chat-badge-notif" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-[#060913]"></span>
+        </button>
+    </div>
+
+    <footer class="w-full max-w-6xl mx-auto pt-4 border-t border-white/5 text-center text-[10px] text-white/30 font-automotive z-10">
+        © 2026 CAA SYSTEM • ÁREA EXCLUSIVA DO CLIENTE
+    </footer>
+
+    <script>
+        const SUPABASE_URL = 'https://pvlssbcljdwtskfaczjt.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_aWvkKDlc_4kOaZMR47uhHg_EqmRUQuf';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let usuarioLogado = null;
+
+        const fasesConfig = {
+            1: { badge: "Recebido", desc: "Veículo deu entrada no pátio e passou pela vistoria inicial.", pct: "5%", color: "#00d4ff" },
+            2: { badge: "Preparação", desc: "Processo de lavagem técnica detalhada e mascaramento de borrachas iniciado.", pct: "35%", color: "#00d4ff" },
+            3: { badge: "Aplicação & Cura", desc: "Polimento corretivo finalizado. Aplicando composto cerâmico na estufa climatizada.", pct: "68%", color: "#a855f7" },
+            4: { badge: "Pronto para Retirada", desc: "Finalizado! Seu veículo passou pelo controle de qualidade e já pode ser retirado.", pct: "100%", color: "#10b981" }
+        };
+
+        async function verificarSessaoEBuscarPerfil() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = 'login.html'; return; }
+            usuarioLogado = session.user;
+            
+            const { data: perfil } = await _supabase.from('usuarios').select('nome').eq('id', usuarioLogado.id).maybeSingle();
+            document.getElementById('cliente-nome-topo').innerText = perfil?.nome || usuarioLogado.email.split('@')[0];
+
+            buscarDadosVeiculoEStatus();
+            buscarHistoricoPedidos();
+            carregarCatalogoProdutosEServicos();
+            carregarMensagensChat();
+            escutarMudancasEmTempoReal();
+        }
+
+        async function buscarDadosVeiculoEStatus() {
+            const { data } = await _supabase.from('servicos').select('veiculo, fase_status').eq('id_usuario', usuarioLogado.id).order('criado_em', { ascending: false }).limit(1).maybeSingle();
+            if (data) {
+                document.getElementById('veiculo-titulo').innerText = data.veiculo;
+                atualizarTimelineVisual(data.fase_status || 1);
+            }
+        }
+
+        function atualizarTimelineVisual(fase) {
+            fase = parseInt(fase) || 1;
+            const config = fasesConfig[fase] || fasesConfig[1];
+            document.getElementById('status-badge').innerText = config.badge;
+            document.getElementById('status-badge').style.color = config.color;
+            document.getElementById('status-badge').style.backgroundColor = `${config.color}15`;
+            document.getElementById('status-descricao').innerText = config.desc;
+            document.getElementById('progress-bar-line').style.width = config.pct;
+
+            for (let i = 1; i <= 4; i++) {
+                const stepElement = document.getElementById(`step-${i}`);
+                const dot = stepElement.querySelector('.step-dot');
+                if (i < fase) {
+                    stepElement.classList.replace('opacity-40', 'opacity-100');
+                    dot.innerHTML = '<i class="fa-solid fa-check text-[10px]"></i>';
+                    dot.style.borderColor = dot.style.backgroundColor = '#00d4ff';
+                } else if (i === fase) {
+                    stepElement.classList.replace('opacity-40', 'opacity-100');
+                    dot.style.borderColor = config.color;
+                }
+            }
+        }
+
+        async function carregarCatalogoProdutosEServicos() {
+            const { data } = await _supabase.from('servicos_produtos').select('*');
+            const containerProdutos = document.getElementById('vitrine-produtos-container');
+            const selectServicos = document.getElementById('agenda-servico');
+            containerProdutos.innerHTML = '';
+            selectServicos.innerHTML = '';
+            data.forEach(item => {
+                if (item.tipo === 'Produto') {
+                    containerProdutos.insertAdjacentHTML('beforeend', `<div class="bg-black/30 border border-white/5 p-4 rounded-xl"><h4>${item.nome}</h4><button onclick="comprarProduto('${item.nome}', ${item.valor})" class="w-full bg-white/5 mt-2 py-1 rounded">Adicionar</button></div>`);
+                } else {
+                    selectServicos.insertAdjacentHTML('beforeend', `<option value="${item.nome}">${item.nome}</option>`);
+                }
+            });
+        }
+
+        async function buscarHistoricoPedidos() {
+            const { data } = await _supabase.from('historico_pedidos').select('*').eq('id_usuario', usuarioLogado.id).order('criado_em', { ascending: false });
+            const container = document.getElementById('historico-cliente');
+            container.innerHTML = data.map(item => `<div class="p-3 bg-black/20 border border-white/5 rounded-xl"><b>${item.titulo}</b><br>${item.status}</div>`).join('');
+        }
+
+        function toggleChat() { document.getElementById('chat-box').classList.toggle('hidden'); }
+
+        async function carregarMensagensChat() {
+            const { data } = await _supabase.from('mensagens_chat').select('*').eq('usuario_id', usuarioLogado.id).order('criado_em', { ascending: true });
+            document.getElementById('chat-mensagens').innerHTML = data.map(msg => `<div class="${msg.direcao === 'admin_para_usuario' ? 'bg-white/10 self-start' : 'bg-cyan-500 text-black self-end'} p-2 rounded-xl mb-1">${msg.texto}</div>`).join('');
+        }
+
+        async function handleEnviarMensagem(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input-msg');
+            await _supabase.from('mensagens_chat').insert([{ usuario_id: usuarioLogado.id, texto: input.value, direcao: 'usuario_para_admin' }]);
+            input.value = '';
+            carregarMensagensChat();
+        }
+
+        async function desconectar() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
+
+        // Inicialização
+        document.addEventListener("DOMContentLoaded", () => {
+            verificarSessaoEBuscarPerfil();
+            document.getElementById('agenda-data').setAttribute('min', new Date().toISOString().split('T')[0]);
+        });
+
+        function escutarMudancasEmTempoReal() {
+            _supabase.channel('public:servicos').on('postgres_changes', { event: '*', schema: 'public', table: 'servicos' }, () => buscarDadosVeiculoEStatus()).subscribe();
+            _supabase.channel('public:mensagens').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens_chat' }, () => carregarMensagensChat()).subscribe();
+        }
+    </script>
 </body>
-</html>. 
+</html>
